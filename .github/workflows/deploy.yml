@@ -34,11 +34,10 @@ jobs:
               return packages[0].metadata.container.tags[0] || '0.0.0'
 
       - name: Cancel if there is no changes
-        if: ${{ steps.pocketbase.outputs.version == steps.package.outputs.version }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.setFailed('Version already released')
+        run: echo "$docker-image-version $binary-version"
+        env:
+          docker-image-version: ${{ steps.package.outputs.version }}
+          binary-version: ${{ steps.pocketbase.outputs.version }}
 
       - name: Checkout
         uses: actions/checkout@v3
