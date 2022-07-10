@@ -35,10 +35,9 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          dockerfile: Dockerfile
           push: true
           build-args: VERSION=${{ steps.pocketbase.outputs.version }}
           platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/muchobien/pocketbase:latest,ghcr.io/muchobien/pocketbase:${{ steps.pocketbase.outputs.release }}
+          tags: ghcr.io/muchobien/pocketbase:latest,ghcr.io/muchobien/pocketbase:${{ steps.pocketbase.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

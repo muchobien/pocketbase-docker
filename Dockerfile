@@ -1,4 +1,4 @@
-FROM busybox:latest as downloader
+FROM alpine:3 as downloader
 
 ARG TARGETOS
 ARG TARGETARCH
