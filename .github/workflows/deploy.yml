@@ -24,6 +24,7 @@ jobs:
         with:
           result-encoding: string
           script: |
+              console.log(process.env)
               const {package_name,package_type} = process.env;
               const {data: packages} = await github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg({
                 org: context.repo.owner,
@@ -31,13 +32,16 @@ jobs:
                 package_name
               })
 
+              console.log(packages[0].metadata.container.tags[0])
+
               return packages[0].metadata.container.tags[0] || '0.0.0'
 
       - name: Cancel if there is no changes
-        run: echo "$docker-image-version $binary-version"
-        env:
-          docker-image-version: ${{ steps.package.outputs.version }}
-          binary-version: ${{ steps.pocketbase.outputs.version }}
+        if: ${{ steps.pocketbase.outputs.version == steps.package.outputs.version }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.setFailed('Version already released')
 
       - name: Checkout
         uses: actions/checkout@v3
