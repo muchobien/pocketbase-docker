@@ -14,6 +14,16 @@ jobs:
         with:
           repository: pocketbase/pocketbase
           excludes: draft,prerelease
+      
+      - name: Get latest package version
+        id: package
+        run: |
+          echo "::set-output name=version::$(curl -H "Authorization: token $GITHUB_TOKEN" -s https://api.github.com/orgs/muchobien/packages/container/pocketbase/versions | jq -r '.[0].metadata.container.tags[0]')"
+
+      - name: Cancel if there is no changes
+        if: steps.pocketbase.outputs.version == steps.package.outputs.version
+        run: |
+          exit 1
 
       - name: Checkout
         uses: actions/checkout@v3
