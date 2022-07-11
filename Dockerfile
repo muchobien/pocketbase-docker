@@ -11,5 +11,8 @@ RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${VERSION}/
     && chmod +x /pocketbase
 
 FROM scratch
+
+EXPOSE 8090
+
 COPY --from=downloader /pocketbase /usr/local/bin/pocketbase
-CMD ["/usr/local/bin/pocketbase", "serve"]
+CMD ["/usr/local/bin/pocketbase", "serve", "--http=0.0.0.0:8090"]
