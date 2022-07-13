@@ -11,7 +11,7 @@ docker build -t pocketbase --build-args VERSION=x.x.x .
 ### Docker cli
 
 ```sh
-docker run -ti --rm -p 8090:8090 -v $PWD/pocketbase:/data pocketbase pocketbase serve --http="0.0.0.0:8090" --dir /data
+docker run -ti --rm -p 8090:8090 -v $PWD/pocketbase:/data ghcr.io/muchobien/pocketbase pocketbase serve --http="0.0.0.0:8090" --dir /data
 ```
 
 ### docker-compose
