@@ -16,21 +16,36 @@
 
 ---
 
-## Run the following command to build the image:
+## Supported Architectures
 
-```
-docker build -t pocketbase --build-args VERSION=x.x.x .
-```
+Simply pulling `ghcr.io/muchobien/pocketbase:latest` should retrieve the correct image for your arch.
 
-## Run
+The architectures supported by this image are:
 
-### Docker cli
+| Architecture | Available |
+| :----: | :----: | 
+| amd64 | ✅ |
+| arm64 | ✅ |
+| armv7| ✅|
 
-```sh
-docker run -ti --rm -p 8090:8090 -v $PWD/pocketbase:/data ghcr.io/muchobien/pocketbase pocketbase serve --http="0.0.0.0:8090" --dir /data
-```
+## Version Tags
 
-### docker-compose
+This image provides various versions that are available via tags. Please read the descriptions carefully and exercise caution when using unstable or development tags.
+
+| Tag | Available | Description |
+| :----: | :----: |--- |
+| latest | ✅ | Stable releases from PocketBase |
+| x.x.x | ✅ | Specific release from PocketBase |
+
+## Application Setup
+
+Access the webui at `<your-ip>:8090`, for more information check out [PocketBase](https://pocketbase.io/docs/).
+
+## Usage
+
+Here are some example snippets to help you get started creating a container.
+
+### docker-compose (recommended)
 
 ```yml
 version: "3.7"
@@ -46,14 +61,26 @@ services:
       - 0.0.0.0:8090
       - --dir
       - /data
-      - --encryptionEnv
-      - ENCRYPTION
+      - --encryptionEnv #optional
+      - ENCRYPTION #optional
     environment:
-      ENCRYPTION: "${ENCRYPTION}"
+      ENCRYPTION: "${ENCRYPTION}" #optional
     ports:
       - "8090:8090"
     volumes:
-      - ./pocketbase:/data
+      - /path/to/data:/data
+```
+
+### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
+
+```bash
+docker run -d \
+  --name=pocketbase \
+  -p 8090:8090 \
+  -v /path/to/data:/data \
+  --restart unless-stopped \
+  ghcr.io/muchobien/pocketbase:latest \
+  pocketbase serve --http="0.0.0.0:8090" --dir="/data"
 ```
 
 ## Related Repositories
