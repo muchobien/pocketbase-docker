@@ -1,7 +1,7 @@
 <p align="center">
   <a href="https://pocketbase.io/">
     <img alt="pocketbase logo" height="128" src="https://pocketbase.io/images/logo.svg">
-    <h1 align="center">Docker image for pocketbase</h1>
+    <h1 align="center">Docker image for PocketBase</h1>
   </a>
 </p>
 
