@@ -55,20 +55,14 @@ services:
     container_name: pocketbase
     restart: unless-stopped
     command:
-      - pocketbase
-      - serve
-      - --http
-      - 0.0.0.0:8090
-      - --dir
-      - /data
       - --encryptionEnv #optional
       - ENCRYPTION #optional
     environment:
-      ENCRYPTION: "${ENCRYPTION}" #optional
+      ENCRYPTION: example #optional
     ports:
       - "8090:8090"
     volumes:
-      - /path/to/data:/data
+      - /path/to/data:/pb_data
 ```
 
 ### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
@@ -77,10 +71,11 @@ services:
 docker run -d \
   --name=pocketbase \
   -p 8090:8090 \
-  -v /path/to/data:/data \
+  -e ENCRYPTION=example `#optional` \
+  -v /path/to/data:/pb_data \
   --restart unless-stopped \
   ghcr.io/muchobien/pocketbase:latest \
-  pocketbase serve --http="0.0.0.0:8090" --dir="/data"
+  --encryptionEnv ENCRYPTION `#optional`
 ```
 
 ## Related Repositories
