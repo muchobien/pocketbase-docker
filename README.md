@@ -16,18 +16,6 @@
 
 ---
 
-## Supported Architectures
-
-Simply pulling `ghcr.io/muchobien/pocketbase:latest` should retrieve the correct image for your arch.
-
-The architectures supported by this image are:
-
-| Architecture | Available |
-| :----: | :----: | 
-| amd64 | ✅ |
-| arm64 | ✅ |
-| armv7| ✅|
-
 ## Version Tags
 
 This image provides various versions that are available via tags. Please read the descriptions carefully and exercise caution when using unstable or development tags.
@@ -43,15 +31,13 @@ Access the webui at `<your-ip>:8090`, for more information check out [PocketBase
 
 ## Usage
 
-Here are some example snippets to help you get started creating a container.
-
 ### docker-compose (recommended)
 
 ```yml
 version: "3.7"
 services:
   pocketbase:
-    image: ghcr.io/muchobien/pocketbase:latest
+    image: ghcr.io/draxcodes/pocketbase:latest
     container_name: pocketbase
     restart: unless-stopped
     command:
@@ -74,7 +60,7 @@ docker run -d \
   -e ENCRYPTION=example `#optional` \
   -v /path/to/data:/pb_data \
   --restart unless-stopped \
-  ghcr.io/muchobien/pocketbase:latest \
+  ghcr.io/draxcodes/pocketbase:latest \
   --encryptionEnv ENCRYPTION `#optional`
 ```
 
