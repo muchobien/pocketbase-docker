@@ -61,7 +61,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/muchobien/pocketbase
+            ghcr.io/draxcodes/pocketbase
           tags: |
             type=semver,pattern={{version}},value=${{ steps.pocketbase.outputs.version }}
 
