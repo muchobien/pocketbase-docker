@@ -21,7 +21,6 @@ jobs:
         env:
           package_name: pocketbase
           package_type: container
-          username: draxcodes
         with:
           result-encoding: string
           script: |
@@ -30,7 +29,7 @@ jobs:
               org: context.repo.owner,
               package_type,
               package_name,
-              username
+              username: 'draxcodes' 
             })
 
             return packages[0].metadata.container.tags[0] || '0.0.0'
