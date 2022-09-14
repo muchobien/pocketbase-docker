@@ -21,15 +21,16 @@ jobs:
         env:
           package_name: pocketbase
           package_type: container
+          username: draxcodes
         with:
           result-encoding: string
-          github-token: ${{ secrets.TOKEN }}
           script: |
             const {package_name,package_type} = process.env;
-            const {data: packages} = await github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg({
+            const {data: packages} = await github.rest.packages.getAllPackageVersionsForPackageOwnedByUser({
               org: context.repo.owner,
               package_type,
-              package_name
+              package_name,
+              username
             })
 
             return packages[0].metadata.container.tags[0] || '0.0.0'
