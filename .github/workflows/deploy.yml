@@ -26,9 +26,8 @@ jobs:
           script: |
             const {package_name,package_type} = process.env;
             const {data: packages} = await github.rest.packages.getAllPackageVersionsForPackageOwnedByUser({
-              org: context.repo.owner,
-              package_type,
-              package_name,
+              package_type: 'container',
+              package_name: 'pocketbase',
               username: 'draxcodes' 
             })
 
