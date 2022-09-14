@@ -15,31 +15,6 @@ jobs:
           repository: pocketbase/pocketbase
           excludes: draft,prerelease
 
-      - name: Get latest package version
-        id: package
-        uses: actions/github-script@v6
-        env:
-          package_name: pocketbase
-          package_type: container
-        with:
-          result-encoding: string
-          script: |
-            const {package_name,package_type} = process.env;
-            const {data: packages} = await github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg({
-              org: context.repo.owner,
-              package_type,
-              package_name
-            })
-
-            return packages[0].metadata.container.tags[0] || '0.0.0'
-
-      - name: Cancel if there is no changes
-        if: ${{ steps.pocketbase.outputs.version == steps.package.outputs.result && github.event_name != 'workflow_dispatch' }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.setFailed('Version already released')
-
       - name: Checkout
         uses: actions/checkout@v3
 
