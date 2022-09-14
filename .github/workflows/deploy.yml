@@ -23,6 +23,7 @@ jobs:
           package_type: container
         with:
           result-encoding: string
+          github-token: ${{ secrets.TOKEN }}
           script: |
             const {package_name,package_type} = process.env;
             const {data: packages} = await github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg({
