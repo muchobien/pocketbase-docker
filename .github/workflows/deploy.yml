@@ -64,6 +64,8 @@ jobs:
             ghcr.io/muchobien/pocketbase
           tags: |
             type=semver,pattern={{version}},value=${{ steps.pocketbase.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.pocketbase.outputs.version }}
+            type=semver,pattern={{major}},value=${{ steps.pocketbase.outputs.version }}
 
       - name: Build and push
         uses: docker/build-push-action@v3
