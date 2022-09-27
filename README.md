@@ -35,7 +35,10 @@ This image provides various versions that are available via tags. Please read th
 | Tag | Available | Description |
 | :----: | :----: |--- |
 | latest | ✅ | Stable releases from PocketBase |
-| x.x.x | ✅ | Specific release from PocketBase |
+| x.x.x | ✅ | Patch release from PocketBase |
+| x.x | ✅ | Minor release from PocketBase |
+| x | ✅ | Major release from PocketBase |
+
 
 ## Application Setup
 
