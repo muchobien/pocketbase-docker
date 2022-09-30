@@ -5,41 +5,56 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      pocketbase: ${{ steps.pocketbase.outputs.result }}
+      package: ${{ steps.package.outputs.result }}
     steps:
-      - name: Fetch latest pocketbase version
+      - name: Get latest pocketbase release
         id: pocketbase
-        uses: muchobien/repo-releases@main
+        uses: actions/github-script@v6
+        env:
+          OWNER: pocketbase
+          REPO: pocketbase
+          EXCLUDES: '["draft", "prerelease"]'
         with:
-          repository: pocketbase/pocketbase
-          excludes: draft,prerelease
+          result-encoding: string
+          script: |
+            const {OWNER,REPO,EXCLUDES} = process.env;
+            const {data} = await github.rest.repos.listReleases({
+              owner: OWNER,
+              repo: REPO
+            })
+
+            const releases = data.filter(release => JSON.parse(EXCLUDES).some(exclude => !release[exclude]))
+            const latest = releases[0]
+ 
+            return latest.tag_name.replace('v','')
 
       - name: Get latest package version
         id: package
         uses: actions/github-script@v6
         env:
-          package_name: pocketbase
-          package_type: container
+          PACKAGE_NAME: pocketbase
+          PACKAGE_TYPE: container
         with:
           result-encoding: string
           script: |
-            const {package_name,package_type} = process.env;
+            const {PACKAGE_NAME,PACKAGE_TYPE} = process.env;
             const {data: packages} = await github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg({
               org: context.repo.owner,
-              package_type,
-              package_name
+              package_type: PACKAGE_TYPE,
+              package_name: PACKAGE_NAME,
             })
 
             return packages[0].metadata.container.tags[0] || '0.0.0'
 
-      - name: Cancel if there is no changes
-        if: ${{ steps.pocketbase.outputs.version == steps.package.outputs.result && github.event_name != 'workflow_dispatch' }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.setFailed('Version already released')
-
+  release:
+    runs-on: ubuntu-latest
+    needs: check
+    if: (needs.check.outputs.pocketbase != needs.check.outputs.package) || github.event_name == 'workflow_dispatch'
+    steps:
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -63,16 +78,16 @@ jobs:
           images: |
             ghcr.io/muchobien/pocketbase
           tags: |
-            type=semver,pattern={{version}},value=${{ steps.pocketbase.outputs.version }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ steps.pocketbase.outputs.version }}
-            type=semver,pattern={{major}},value=${{ steps.pocketbase.outputs.version }}
+            type=semver,pattern={{version}},value=${{ needs.check.outputs.pocketbase }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.check.outputs.pocketbase }}
+            type=semver,pattern={{major}},value=${{ needs.check.outputs.pocketbase }}
 
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          build-args: VERSION=${{ steps.pocketbase.outputs.version }}
+          build-args: VERSION=${{ needs.check.outputs.pocketbase }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
