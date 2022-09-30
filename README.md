@@ -66,6 +66,7 @@ services:
       - "8090:8090"
     volumes:
       - /path/to/data:/pb_data
+      - /path/to/public:/pb_public #optional
 ```
 
 ### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
@@ -76,6 +77,7 @@ docker run -d \
   -p 8090:8090 \
   -e ENCRYPTION=example `#optional` \
   -v /path/to/data:/pb_data \
+  -v /path/to/public:/pb_public `#optional` \
   --restart unless-stopped \
   ghcr.io/muchobien/pocketbase:latest \
   --encryptionEnv ENCRYPTION `#optional`
