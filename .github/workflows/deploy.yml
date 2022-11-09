@@ -52,8 +52,8 @@ jobs:
               package_name: PACKAGE_NAME,
             })
 
-            const latest = packages.filter(
-              (p) => p.metadata.container.tags[0] === "latest"
+            const latest = packages.filter((p) =>
+              p.metadata.container.tags.includes("latest")
             )[0];
 
             return latest.metadata.container.tags[0] || '0.0.0'
