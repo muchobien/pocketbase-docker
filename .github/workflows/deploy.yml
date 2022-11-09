@@ -3,6 +3,10 @@ on:
   schedule:
     - cron: "0 * * * *"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release"
+        required: true
 
 jobs:
   check:
@@ -29,7 +33,7 @@ jobs:
 
             const releases = data.filter(release => JSON.parse(EXCLUDES).some(exclude => !release[exclude]))
             const latest = releases[0]
- 
+
             return latest.tag_name.replace('v','')
 
       - name: Get latest package version
@@ -71,6 +75,10 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get version from needs or input
+        id: version
+        run: echo "value=${{ github.event.inputs.version || needs.check.outputs.pocketbase }}" >> $GITHUB_OUTPUT
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
@@ -78,16 +86,16 @@ jobs:
           images: |
             ghcr.io/muchobien/pocketbase
           tags: |
-            type=semver,pattern={{version}},value=${{ needs.check.outputs.pocketbase }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ needs.check.outputs.pocketbase }}
-            type=semver,pattern={{major}},value=${{ needs.check.outputs.pocketbase }}
+            type=semver,pattern={{version}},value=${{ steps.version.outputs.value }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.value }}
+            type=semver,pattern={{major}},value=${{ steps.version.outputs.value }}
 
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          build-args: VERSION=${{ needs.check.outputs.pocketbase }}
+          build-args: VERSION=${{ steps.version.outputs.value }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
