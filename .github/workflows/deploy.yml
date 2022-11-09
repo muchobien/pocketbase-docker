@@ -31,7 +31,7 @@ jobs:
               repo: REPO
             })
 
-            const releases = data.filter(release => JSON.parse(EXCLUDES).some(exclude => !release[exclude]))
+            const releases = data.filter(release => JSON.parse(EXCLUDES).every(exclude => !release[exclude]))
             const latest = releases[0]
 
             return latest.tag_name.replace('v','')
@@ -52,7 +52,11 @@ jobs:
               package_name: PACKAGE_NAME,
             })
 
-            return packages[0].metadata.container.tags[0] || '0.0.0'
+            const latest = packages.filter(
+              (p) => p.metadata.container.tags[0] === "latest"
+            )[0];
+
+            return latest.metadata.container.tags[0] || '0.0.0'
 
   release:
     runs-on: ubuntu-latest
