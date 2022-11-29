@@ -56,7 +56,7 @@ jobs:
               p.metadata.container.tags.includes("latest")
             )[0];
 
-            return latest.metadata.container.tags[0] || '0.0.0'
+            return latest.metadata.container.tags.find((v) => /^v?\d+\.\d+\.\d+$/.test(v)) || '0.0.0'
 
   release:
     runs-on: ubuntu-latest
