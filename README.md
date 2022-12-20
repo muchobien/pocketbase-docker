@@ -23,22 +23,21 @@ Simply pulling `ghcr.io/muchobien/pocketbase:latest` should retrieve the correct
 The architectures supported by this image are:
 
 | Architecture | Available |
-| :----: | :----: | 
-| amd64 | ✅ |
-| arm64 | ✅ |
-| armv7| ✅|
+| :----------: | :-------: |
+|    amd64     |    ✅     |
+|    arm64     |    ✅     |
+|    armv7     |    ✅     |
 
 ## Version Tags
 
 This image provides various versions that are available via tags. Please read the descriptions carefully and exercise caution when using unstable or development tags.
 
-| Tag | Available | Description |
-| :----: | :----: |--- |
-| latest | ✅ | Stable releases from PocketBase |
-| x.x.x | ✅ | Patch release from PocketBase |
-| x.x | ✅ | Minor release from PocketBase |
-| x | ✅ | Major release from PocketBase |
-
+|  Tag   | Available | Description                     |
+| :----: | :-------: | ------------------------------- |
+| latest |    ✅     | Stable releases from PocketBase |
+| x.x.x  |    ✅     | Patch release from PocketBase   |
+|  x.x   |    ✅     | Minor release from PocketBase   |
+|   x    |    ✅     | Major release from PocketBase   |
 
 ## Application Setup
 
@@ -67,6 +66,11 @@ services:
     volumes:
       - /path/to/data:/pb_data
       - /path/to/public:/pb_public #optional
+    healthcheck: #optional (recommended) since v0.10.0
+      test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
 ```
 
 ### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
