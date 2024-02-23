@@ -66,6 +66,7 @@ services:
     volumes:
       - /path/to/data:/pb_data
       - /path/to/public:/pb_public #optional
+      - /path/to/hooks:/pb_hooks #optional
     healthcheck: #optional (recommended) since v0.10.0
       test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
       interval: 5s
@@ -82,6 +83,7 @@ docker run -d \
   -e ENCRYPTION=example `#optional` \
   -v /path/to/data:/pb_data \
   -v /path/to/public:/pb_public `#optional` \
+  -v /path/to/hooks:/pb_hooks `#optional` \
   --restart unless-stopped \
   ghcr.io/muchobien/pocketbase:latest \
   --encryptionEnv ENCRYPTION `#optional`
