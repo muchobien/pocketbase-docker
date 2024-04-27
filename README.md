@@ -89,6 +89,36 @@ docker run -d \
   --encryptionEnv ENCRYPTION `#optional`
 ```
 
+## Built the image yourself
+Copy `Dockerfile` and `docker-compose.yml` to the root directory, then update the `docker-compose.yml` file to build the image instead of pulling:
+```yml
+version: "3.7"
+services:
+  pocketbase:
+    build:
+      context: .
+      args:
+        - VERSION=0.22.10 # <--------- Set the Pocketbase version here. It will be downloaded from their GitHub repo
+    container_name: pocketbase
+    restart: unless-stopped
+    command:
+      - --encryptionEnv #optional
+      - ENCRYPTION #optional
+    environment:
+      ENCRYPTION: example #optional
+    ports:
+      - "8090:8090"
+    volumes:
+      - /path/to/data:/pb_data
+      - /path/to/public:/pb_public #optional
+      - /path/to/hooks:/pb_hooks #optional
+    healthcheck: #optional (recommended) since v0.10.0
+      test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+```
+
 ## Related Repositories
 
 - [PocketBase](https://github.com/pocketbase/pocketbase)
