@@ -16,14 +16,28 @@
 
 ---
 
+=======
+## Supported Architectures
+
+The architectures supported by this image are:
+
+| Architecture | Available |
+| :----------: | :-------: |
+|    amd64     |    ✅     |
+|    arm64     |    ✅     |
+|    armv7     |    ✅     |
+
+
 ## Version Tags
 
 This image provides various versions that are available via tags. Please read the descriptions carefully and exercise caution when using unstable or development tags.
 
-| Tag | Available | Description |
-| :----: | :----: |--- |
-| latest | ✅ | Stable releases from PocketBase |
-| x.x.x | ✅ | Specific release from PocketBase |
+|  Tag   | Available | Description                     |
+| :----: | :-------: | ------------------------------- |
+| latest |    ✅     | Stable releases from PocketBase |
+| x.x.x  |    ✅     | Patch release from PocketBase   |
+|  x.x   |    ✅     | Minor release from PocketBase   |
+|   x    |    ✅     | Major release from PocketBase   |
 
 ## Application Setup
 
@@ -49,6 +63,13 @@ services:
       - "8090:8090"
     volumes:
       - /path/to/data:/pb_data
+      - /path/to/public:/pb_public #optional
+      - /path/to/hooks:/pb_hooks #optional
+    healthcheck: #optional (recommended) since v0.10.0
+      test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
 ```
 
 ### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
@@ -59,9 +80,41 @@ docker run -d \
   -p 8090:8090 \
   -e ENCRYPTION=example `#optional` \
   -v /path/to/data:/pb_data \
+  -v /path/to/public:/pb_public `#optional` \
+  -v /path/to/hooks:/pb_hooks `#optional` \
   --restart unless-stopped \
   ghcr.io/draxcodes/pocketbase:latest \
   --encryptionEnv ENCRYPTION `#optional`
+```
+
+## Built the image yourself
+Copy `Dockerfile` and `docker-compose.yml` to the root directory, then update the `docker-compose.yml` file to build the image instead of pulling:
+```yml
+version: "3.7"
+services:
+  pocketbase:
+    build:
+      context: .
+      args:
+        - VERSION=0.22.10 # <--------- Set the Pocketbase version here. It will be downloaded from their GitHub repo
+    container_name: pocketbase
+    restart: unless-stopped
+    command:
+      - --encryptionEnv #optional
+      - ENCRYPTION #optional
+    environment:
+      ENCRYPTION: example #optional
+    ports:
+      - "8090:8090"
+    volumes:
+      - /path/to/data:/pb_data
+      - /path/to/public:/pb_public #optional
+      - /path/to/hooks:/pb_hooks #optional
+    healthcheck: #optional (recommended) since v0.10.0
+      test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
 ```
 
 ## Related Repositories

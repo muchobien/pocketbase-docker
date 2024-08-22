@@ -3,24 +3,45 @@ on:
   schedule:
     - cron: "0 0 * * 1"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release"
+        required: true
 
 jobs:
-  release:
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      pocketbase: ${{ steps.pocketbase.outputs.result }}
+      package: ${{ steps.package.outputs.result }}
     steps:
-      - name: Fetch latest pocketbase version
+      - name: Get latest pocketbase release
         id: pocketbase
-        uses: muchobien/repo-releases@main
+        uses: actions/github-script@v7
+        env:
+          OWNER: pocketbase
+          REPO: pocketbase
+          EXCLUDES: '["draft", "prerelease"]'
         with:
-          repository: pocketbase/pocketbase
-          excludes: draft,prerelease
+          result-encoding: string
+          script: |
+            const {OWNER,REPO,EXCLUDES} = process.env;
+            const {data} = await github.rest.repos.listReleases({
+              owner: OWNER,
+              repo: REPO
+            })
+
+            const releases = data.filter(release => JSON.parse(EXCLUDES).every(exclude => !release[exclude]))
+            const latest = releases[0]
+
+            return latest.tag_name.replace('v','')
 
       - name: Get latest package version
         id: package
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         env:
-          package_name: pocketbase
-          package_type: container
+          PACKAGE_NAME: pocketbase
+          PACKAGE_TYPE: container
         with:
           result-encoding: string
           script: |
@@ -31,7 +52,11 @@ jobs:
               username: 'draxcodes' 
             })
 
-            return packages[0].metadata.container.tags[0] || '0.0.0'
+            const latest = packages.filter((p) =>
+              p.metadata.container.tags.includes("latest")
+            )[0];
+            
+            return latest.metadata.container.tags.find((v) => /^v?\d+\.\d+\.\d+$/.test(v)) || '0.0.0'
 
       - name: Cancel if there is no changes
         if: ${{ steps.pocketbase.outputs.version == steps.package.outputs.result }}
@@ -41,37 +66,49 @@ jobs:
             core.warning('Version match found.');
             core.setFailed('Version already released');
 
+  release:
+    runs-on: ubuntu-latest
+    needs: check
+    if: (needs.check.outputs.pocketbase != needs.check.outputs.package) || github.event_name == 'workflow_dispatch'
+    steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to ghcr
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get version from needs or input
+        id: version
+        run: echo "value=${{ github.event.inputs.version || needs.check.outputs.pocketbase }}" >> $GITHUB_OUTPUT
+
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/draxcodes/pocketbase
           tags: |
-            type=semver,pattern={{version}},value=${{ steps.pocketbase.outputs.version }}
+            type=semver,pattern={{version}},value=${{ steps.version.outputs.value }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.value }}
+            type=semver,pattern={{major}},value=${{ steps.version.outputs.value }}
 
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          build-args: VERSION=${{ steps.pocketbase.outputs.version }}
+          provenance: false
+          build-args: VERSION=${{ steps.version.outputs.value }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
