@@ -60,7 +60,7 @@ services:
       - --encryptionEnv #optional
       - ENCRYPTION #optional
     environment:
-      ENCRYPTION: example #optional
+      ENCRYPTION: example #optional if used make sure 32 char long key is used
     ports:
       - "8090:8090"
     volumes:
@@ -73,6 +73,11 @@ services:
       timeout: 5s
       retries: 5
 ```
+
+#### Environment 
+
+Make sure when ENCRYPTION key is used that it is 32 char long to make sure to be conform with [Pocketbase Docu](https://pocketbase.io/docs/going-to-production/#enable-settings-encryption)
+
 
 ### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
 
