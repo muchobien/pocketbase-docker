@@ -1,16 +1,17 @@
+
 <p align="center">
   <a href="https://pocketbase.io/">
-    <img alt="pocketbase logo" height="128" src="https://pocketbase.io/images/logo.svg">
-    <h1 align="center">Docker image for PocketBase</h1>
+    <img alt="PocketBase logo" height="128" src="https://pocketbase.io/images/logo.svg">
+    <h1 align="center">Docker Image for PocketBase</h1>
   </a>
 </p>
 
 <p align="center">
-   <a aria-label="Latest Pocketbase Version" href="https://github.com/pocketbase/pocketbase/releases" target="_blank">
-    <img alt="Latest Pocketbase Version" src="https://img.shields.io/github/v/release/pocketbase/pocketbase?color=success&display_name=tag&label=latest&logo=docker&logoColor=%23fff&sort=semver&style=flat-square">
+   <a aria-label="Latest PocketBase Version" href="https://github.com/pocketbase/pocketbase/releases" target="_blank">
+    <img alt="Latest PocketBase Version" src="https://img.shields.io/github/v/release/pocketbase/pocketbase?color=success&display_name=tag&label=latest&logo=docker&logoColor=%23fff&sort=semver&style=flat-square">
   </a>
-  <a aria-label="Supported archs" href="https://github.com/pocketbase/pocketbase/releases" target="_blank">
-    <img alt="Supported docker archs" src="https://img.shields.io/badge/platform-amd64%20%7C%20arm64%20%7C%20armv7-brightgreen?style=flat-square&logo=linux&logoColor=%23fff">
+  <a aria-label="Supported architectures" href="https://github.com/pocketbase/pocketbase/releases" target="_blank">
+    <img alt="Supported Docker architectures" src="https://img.shields.io/badge/platform-amd64%20%7C%20arm64%20%7C%20armv7-brightgreen?style=flat-square&logo=linux&logoColor=%23fff">
   </a>
 </p>
 
@@ -18,38 +19,36 @@
 
 ## Supported Architectures
 
-Simply pulling `ghcr.io/muchobien/pocketbase:latest` should retrieve the correct image for your arch.
+Pulling `ghcr.io/muchobien/pocketbase:latest` will automatically retrieve the appropriate image for your system architecture.
 
-The architectures supported by this image are:
-
-| Architecture | Available |
-| :----------: | :-------: |
-|    amd64     |    ✅     |
-|    arm64     |    ✅     |
-|    armv7     |    ✅     |
+| Architecture | Supported |
+|--------------|-----------|
+| amd64        | ✅        |
+| arm64        | ✅        |
+| armv7        | ✅        |
 
 ## Version Tags
 
-This image provides various versions that are available via tags. Please read the descriptions carefully and exercise caution when using unstable or development tags.
+This image offers multiple tags for different versions. Choose the appropriate tag for your use case and exercise caution when using unstable or development tags.
 
-|  Tag   | Available | Description                     |
-| :----: | :-------: | ------------------------------- |
-| latest |    ✅     | Stable releases from PocketBase |
-| x.x.x  |    ✅     | Patch release from PocketBase   |
-|  x.x   |    ✅     | Minor release from PocketBase   |
-|   x    |    ✅     | Major release from PocketBase   |
+| Tag    | Available | Description                        |
+|--------|-----------|------------------------------------|
+| latest | ✅        | Latest stable release of PocketBase |
+| x.x.x  | ✅        | Specific patch release             |
+| x.x    | ✅        | Minor release                      |
+| x      | ✅        | Major release                      |
 
 ## Application Setup
 
-Access the webui at `<your-ip>:8090`, for more information check out [PocketBase](https://pocketbase.io/docs/).
+Access the web UI at `<your-ip>:8090`. For more details, refer to the [PocketBase Documentation](https://pocketbase.io/docs/).
 
 ## Usage
 
-Here are some example snippets to help you get started creating a container.
+Below are example configurations to get started with a PocketBase container.
 
-### docker-compose (recommended)
+### Using Docker Compose (Recommended)
 
-```yml
+```yaml
 version: "3.7"
 services:
   pocketbase:
@@ -57,67 +56,64 @@ services:
     container_name: pocketbase
     restart: unless-stopped
     command:
-      - --encryptionEnv #optional
-      - ENCRYPTION #optional
+      - --encryptionEnv # optional
+      - ENCRYPTION # optional
     environment:
-      ENCRYPTION: example #optional if used make sure 32 char long key is used
+      ENCRYPTION: example # optional (Ensure this is a 32-character long encryption key) (openssl rand -hex 16)
     ports:
       - "8090:8090"
     volumes:
       - /path/to/data:/pb_data
-      - /path/to/public:/pb_public #optional
-      - /path/to/hooks:/pb_hooks #optional
-    healthcheck: #optional (recommended) since v0.10.0
+      - /path/to/public:/pb_public # optional
+      - /path/to/hooks:/pb_hooks # optional
+    healthcheck: # optional, recommended since v0.10.0
       test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
       interval: 5s
       timeout: 5s
       retries: 5
 ```
 
-#### Environment 
-
-Make sure when ENCRYPTION key is used that it is 32 char long to make sure to be conform with [Pocketbase Docu](https://pocketbase.io/docs/going-to-production/#enable-settings-encryption)
-
-
-### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
+### Using Docker CLI ([More Info](https://docs.docker.com/engine/reference/commandline/cli/))
 
 ```bash
 docker run -d \
   --name=pocketbase \
   -p 8090:8090 \
-  -e ENCRYPTION=example `#optional` \
+  -e ENCRYPTION=example `# optional` \
   -v /path/to/data:/pb_data \
-  -v /path/to/public:/pb_public `#optional` \
-  -v /path/to/hooks:/pb_hooks `#optional` \
+  -v /path/to/public:/pb_public `# optional` \
+  -v /path/to/hooks:/pb_hooks `# optional` \
   --restart unless-stopped \
   ghcr.io/muchobien/pocketbase:latest \
-  --encryptionEnv ENCRYPTION `#optional`
+  --encryptionEnv ENCRYPTION `# optional`
 ```
 
-## Built the image yourself
-Copy `Dockerfile` and `docker-compose.yml` to the root directory, then update the `docker-compose.yml` file to build the image instead of pulling:
-```yml
+## Building the Image Locally
+
+To build the image yourself, copy the `Dockerfile` and `docker-compose.yml` to your project directory. Update `docker-compose.yml` to build the image instead of pulling it:
+
+```yaml
 version: "3.7"
 services:
   pocketbase:
     build:
       context: .
       args:
-        - VERSION=0.22.10 # <--------- Set the Pocketbase version here. It will be downloaded from their GitHub repo
+        - VERSION=0.22.10 # Specify the PocketBase version here
     container_name: pocketbase
     restart: unless-stopped
     command:
-      - --encryptionEnv #optional
-      - ENCRYPTION #optional
+      - --encryptionEnv # optional
+      - ENCRYPTION # optional
     environment:
-      ENCRYPTION: example #optional
+      ENCRYPTION: example # optional
     ports:
       - "8090:8090"
     volumes:
       - /path/to/data:/pb_data
-      - /path/to/public:/pb_public #optional
-      - /path/to/hooks:/pb_hooks #optional
-    healthcheck: #optional (recommended) since v0.10.0
+      - /path/to/public:/pb_public # optional
+      - /path/to/hooks:/pb_hooks # optional
+    healthcheck: # optional, recommended since v0.10.0
       test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
       interval: 5s
       timeout: 5s
@@ -126,4 +122,4 @@ services:
 
 ## Related Repositories
 
-- [PocketBase](https://github.com/pocketbase/pocketbase)
+- [PocketBase GitHub Repository](https://github.com/pocketbase/pocketbase)
