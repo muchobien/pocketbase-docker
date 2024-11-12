@@ -59,7 +59,7 @@ services:
       - --encryptionEnv # optional
       - ENCRYPTION # optional
     environment:
-      ENCRYPTION: example # optional (Ensure this is a 32-character long encryption key) (openssl rand -hex 16)
+      ENCRYPTION: $(openssl rand -hex 16) # optional (Ensure this is a 32-character long encryption key https://pocketbase.io/docs/going-to-production/#enable-settings-encryption) 
     ports:
       - "8090:8090"
     volumes:
