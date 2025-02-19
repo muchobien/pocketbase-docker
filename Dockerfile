@@ -16,5 +16,12 @@ RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 
 EXPOSE 8090
 
+# Environment variables for admin credentials
+ENV PB_ADMIN_EMAIL=""
+ENV PB_ADMIN_PASSWORD=""
+
 COPY --from=downloader /pocketbase /usr/local/bin/pocketbase
-ENTRYPOINT ["/usr/local/bin/pocketbase", "serve", "--http=0.0.0.0:8090", "--dir=/pb_data", "--publicDir=/pb_public", "--hooksDir=/pb_hooks"]
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

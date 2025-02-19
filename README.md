@@ -88,6 +88,42 @@ docker run -d \
   --encryptionEnv ENCRYPTION `# optional`
 ```
 
+## Configuring Admin Credentials
+
+You can configure a default admin user during container initialization by setting the following environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `PB_ADMIN_EMAIL` | Email address for the admin user |
+| `PB_ADMIN_PASSWORD` | Password for the admin user |
+
+### Using Docker Compose
+
+```yaml
+version: "3.7"
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    environment:
+      PB_ADMIN_EMAIL: "admin@example.com"
+      PB_ADMIN_PASSWORD: "your-secure-password"
+    # ... other configuration ...
+```
+
+### Using Docker CLI
+
+```bash
+docker run -d \
+  --name=pocketbase \
+  -p 8090:8090 \
+  -e PB_ADMIN_EMAIL=admin@example.com \
+  -e PB_ADMIN_PASSWORD=your-secure-password \
+  -v /path/to/data:/pb_data \
+  ghcr.io/muchobien/pocketbase:latest
+```
+
+**Note**: If either of these environment variables is not set, the container will start normally without creating an admin user.
+
 ## Building the Image Locally
 
 To build the image yourself, copy the `Dockerfile` and `docker-compose.yml` to your project directory. Update `docker-compose.yml` to build the image instead of pulling it:
