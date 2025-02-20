@@ -11,11 +11,20 @@ create_superuser() {
     # Initialize the database
     $POCKETBASE_BIN --dir="$PB_DATA_DIR" migrate
 
-    # Attempt to create superuser
-    if $POCKETBASE_BIN --dir="$PB_DATA_DIR" superuser create "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD"; then
+    # Attempt to create superuser and capture output and exit code
+    output=$($POCKETBASE_BIN --dir="$PB_DATA_DIR" superuser create "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" 2>&1)
+    exit_code=$?
+
+    # Check if user already exists by looking for the unique constraint error
+    if echo "$output" | grep -q "email: Value must be unique"; then
+        echo "Admin user $PB_ADMIN_EMAIL already exists, skipping creation"
+        return 0
+    elif [ $exit_code -eq 0 ]; then
         echo "Successfully created default admin user"
+        return 0
     else
-        echo "Failed to create admin user. Check if user already exists or if there are any other errors in the container logs."
+        echo "Failed to create admin user: $output"
+        return 1
     fi
 }
 
