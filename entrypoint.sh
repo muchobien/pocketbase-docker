@@ -1,13 +1,18 @@
 #!/bin/sh
 set -e
 
+PB_DATA_DIR="/pb_data"
+PB_PUBLIC_DIR="/pb_public"
+PB_HOOKS_DIR="/pb_hooks"
+POCKETBASE_BIN="/usr/local/bin/pocketbase"
+
 # Function to create superuser
 create_superuser() {
     # Initialize the database
-    /usr/local/bin/pocketbase --dir=/pb_data migrate
+    $POCKETBASE_BIN --dir="$PB_DATA_DIR" migrate
 
     # Attempt to create superuser
-    if /usr/local/bin/pocketbase --dir=/pb_data superuser create "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD"; then
+    if $POCKETBASE_BIN --dir="$PB_DATA_DIR" superuser create "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD"; then
         echo "Successfully created default admin user"
     else
         echo "Failed to create admin user. Check if user already exists or if there are any other errors in the container logs."
@@ -21,4 +26,4 @@ if [ -n "$PB_ADMIN_EMAIL" ] && [ -n "$PB_ADMIN_PASSWORD" ]; then
 fi
 
 # Start PocketBase server
-exec /usr/local/bin/pocketbase serve --http=0.0.0.0:8090 --dir=/pb_data --publicDir=/pb_public --hooksDir=/pb_hooks
+exec /usr/local/bin/pocketbase serve --http=0.0.0.0:8090 --dir=$PB_DATA_DIR --publicDir=$PB_PUBLIC_DIR --hooksDir=$PB_HOOKS_DIR
