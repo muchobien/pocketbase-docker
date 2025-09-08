@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Get latest pocketbase release
         id: pocketbase
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           OWNER: pocketbase
           REPO: pocketbase
@@ -38,7 +38,7 @@ jobs:
 
       - name: Get latest package version
         id: package
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           PACKAGE_NAME: pocketbase
           PACKAGE_TYPE: container
@@ -64,7 +64,7 @@ jobs:
     if: (needs.check.outputs.pocketbase != needs.check.outputs.package) || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
