@@ -36,4 +36,4 @@ if [ -n "$PB_ADMIN_EMAIL" ] && [ -n "$PB_ADMIN_PASSWORD" ]; then
 fi
 
 # Start PocketBase server
-exec /usr/local/bin/pocketbase serve --http=0.0.0.0:8090 --dir=$PB_DATA_DIR --publicDir=$PB_PUBLIC_DIR --hooksDir=$PB_HOOKS_DIR "$@"
+exec /usr/local/bin/pocketbase serve --http=0.0.0.0:8090 --dir="$PB_DATA_DIR" --publicDir="$PB_PUBLIC_DIR" --hooksDir="$PB_HOOKS_DIR" "$@"
