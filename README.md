@@ -1,4 +1,3 @@
-
 <p align="center">
   <a href="https://pocketbase.io/">
     <img alt="PocketBase logo" height="128" src="https://pocketbase.io/images/logo.svg">
@@ -17,110 +16,361 @@
 
 ---
 
-## Supported Architectures
+## Quick Start
 
-Pulling `ghcr.io/muchobien/pocketbase:latest` will automatically retrieve the appropriate image for your system architecture.
+```bash
+# Basic usage - starts PocketBase server on port 8090
+docker run --rm -p 8090:8090 ghcr.io/muchobien/pocketbase:latest
 
-| Architecture | Supported |
-|--------------|-----------|
-| amd64        | ✅        |
-| arm64        | ✅        |
-| armv7        | ✅        |
+# Access the Admin UI at http://localhost:8090/_/
+```
 
-## Version Tags
+> [!TIP]
+> For production use, mount volumes for data persistence: `-v ./pb_data:/pb_data`
 
-This image offers multiple tags for different versions. Choose the appropriate tag for your use case and exercise caution when using unstable or development tags.
+## Features
 
-| Tag    | Available | Description                        |
-|--------|-----------|------------------------------------|
-| latest | ✅        | Latest stable release of PocketBase |
-| x.x.x  | ✅        | Specific patch release             |
-| x.x    | ✅        | Minor release                      |
-| x      | ✅        | Major release                      |
+- 🚀 **Smart Entrypoint**: Automatically serves PocketBase with sensible defaults
+- 🔧 **Flexible Commands**: Run any PocketBase command (admin, migrate, etc.)
+- 🌐 **Configurable Host/Port**: Use `PB_HOST` and `PB_PORT` environment variables
+- 📦 **Multi-Architecture**: Supports amd64, arm64, and armv7
+- 🛡️ **Secure Defaults**: Follows Docker and PocketBase best practices
 
-## Application Setup
+## Environment Variables
 
-Access the web UI at `<your-ip>:8090`. For more details, refer to the [PocketBase Documentation](https://pocketbase.io/docs/).
+| Variable  | Default   | Description                  |
+| --------- | --------- | ---------------------------- |
+| `PB_HOST` | `0.0.0.0` | Network interface to bind to |
+| `PB_PORT` | `8090`    | Port to listen on            |
 
-## Usage
+> [!NOTE]  
+> When changing `PB_PORT`, remember to also update the Docker port mapping (e.g., `-p 3000:3000` for port 3000).
 
-Below are example configurations to get started with a PocketBase container.
+## Usage Examples
+
+### Default Server
+
+```bash
+# Starts PocketBase server with default settings
+docker run --rm -p 8090:8090 ghcr.io/muchobien/pocketbase:latest
+```
+
+### Custom Host and Port
+
+```bash
+# Custom port
+docker run --rm -p 3000:3000 -e PB_PORT=3000 ghcr.io/muchobien/pocketbase:latest
+
+# Localhost only (security)
+docker run --rm -p 8090:8090 -e PB_HOST=127.0.0.1 ghcr.io/muchobien/pocketbase:latest
+
+# Custom host and port
+docker run --rm -p 9000:9000 -e PB_HOST=0.0.0.0 -e PB_PORT=9000 ghcr.io/muchobien/pocketbase:latest
+```
+
+### Development Mode
+
+```bash
+# Enable development mode with detailed logging
+docker run --rm -p 8090:8090 ghcr.io/muchobien/pocketbase:latest --dev
+
+# Development with custom port
+docker run --rm -p 3000:3000 -e PB_PORT=3000 ghcr.io/muchobien/pocketbase:latest --dev
+```
+
+> [!WARNING]  
+> Never use `--dev` flag in production as it exposes sensitive information in logs.
+
+### PocketBase Commands
+
+```bash
+# Show help
+docker run --rm ghcr.io/muchobien/pocketbase:latest --help
+
+# Show version
+docker run --rm ghcr.io/muchobien/pocketbase:latest --version
+
+# Run database migrations
+docker run --rm -v ./pb_data:/pb_data ghcr.io/muchobien/pocketbase:latest migrate
+
+# Create admin user
+docker run --rm -it -v ./pb_data:/pb_data ghcr.io/muchobien/pocketbase:latest admin create
+
+# Admin help
+docker run --rm ghcr.io/muchobien/pocketbase:latest admin --help
+```
+
+### Shell Access
+
+```bash
+# Access shell for debugging or maintenance
+docker run --rm -it --entrypoint /bin/sh ghcr.io/muchobien/pocketbase:latest
+```
+
+## Production Deployment
+
+Below are example configurations for production deployment.
 
 ### Using Docker Compose (Recommended)
 
 ```yaml
-version: "3.7"
 services:
   pocketbase:
     image: ghcr.io/muchobien/pocketbase:latest
     container_name: pocketbase
     restart: unless-stopped
-    command:
-      - --encryptionEnv # optional
-      - ENCRYPTION # optional
     environment:
-      ENCRYPTION: $(openssl rand -hex 16) # optional (Ensure this is a 32-character long encryption key https://pocketbase.io/docs/going-to-production/#enable-settings-encryption)
-      TZ: Europe/Berlin # optional
+      # Optional: Configure host and port (defaults: 0.0.0.0:8090)
+      PB_HOST: 0.0.0.0
+      PB_PORT: 8090
+      # Optional: Enable settings encryption (32-character key)
+      # https://pocketbase.io/docs/going-to-production/#enable-settings-encryption
+      ENCRYPTION: $(openssl rand -hex 16)
+      # Optional: Set timezone
+      TZ: Europe/Berlin
     ports:
-      - "8090:8090"
+      - "8090:8090" # Change both port and PB_PORT for custom ports: "3000:3000"
     volumes:
-      - /path/to/data:/pb_data
-      - /path/to/public:/pb_public # optional
-      - /path/to/hooks:/pb_hooks # optional
-    healthcheck: # optional, recommended since v0.10.0
-      test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - ./pb_data:/pb_data
+      - ./pb_public:/pb_public # optional
+      - ./pb_hooks:/pb_hooks # optional
+    # Optional: Add encryption flag if using ENCRYPTION env var
+    command: ["--encryptionEnv", "ENCRYPTION"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8090/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 ```
 
-### Using Docker CLI ([More Info](https://docs.docker.com/engine/reference/commandline/cli/))
+> [!WARNING]  
+> Always use volumes for data persistence in production. Without volumes, all data will be lost when the container stops.
+
+### Using Docker CLI
 
 ```bash
+# Basic production setup (default: 0.0.0.0:8090)
 docker run -d \
   --name=pocketbase \
   -p 8090:8090 \
-  -e ENCRYPTION=example `# optional` \
-  -v /path/to/data:/pb_data \
-  -v /path/to/public:/pb_public `# optional` \
-  -v /path/to/hooks:/pb_hooks `# optional` \
+  -v $(pwd)/pb_data:/pb_data \
+  -v $(pwd)/pb_public:/pb_public \
+  -v $(pwd)/pb_hooks:/pb_hooks \
+  --restart unless-stopped \
+  ghcr.io/muchobien/pocketbase:latest
+
+# With custom port, host, and encryption
+docker run -d \
+  --name=pocketbase \
+  -p 3000:3000 \
+  -e PB_HOST=0.0.0.0 \
+  -e PB_PORT=3000 \
+  -e ENCRYPTION=$(openssl rand -hex 16) \
+  -v $(pwd)/pb_data:/pb_data \
+  -v $(pwd)/pb_public:/pb_public \
+  -v $(pwd)/pb_hooks:/pb_hooks \
   --restart unless-stopped \
   ghcr.io/muchobien/pocketbase:latest \
-  --encryptionEnv ENCRYPTION `# optional`
+  --encryptionEnv ENCRYPTION
 ```
 
-## Building the Image Locally
+> [!IMPORTANT]  
+> For production deployments, use strong encryption keys and secure your environment variables.
 
-To build the image yourself, copy the `Dockerfile` and `docker-compose.yml` to your project directory. Update `docker-compose.yml` to build the image instead of pulling it:
+# Development setup with logging
+
+```bash
+docker run -d \
+ --name=pocketbase-dev \
+ -p 8090:8090 \
+ -v $(pwd)/pb_data:/pb_data \
+ ghcr.io/muchobien/pocketbase:latest \
+ --dev
+```
+
+## Advanced Usage
+
+### Building the Image Locally
+
+```bash
+# Build with specific PocketBase version
+docker build --build-arg VERSION=0.22.21 -t my-pocketbase .
+
+# Build with latest version (uses latest release from GitHub)
+docker build --build-arg VERSION=0.23.0 -t my-pocketbase:0.23.0 .
+
+# Build without specifying version (uses default from Dockerfile)
+docker build -t my-pocketbase:dev .
+```
+
+### Docker Compose for Development
 
 ```yaml
-version: "3.7"
 services:
   pocketbase:
     build:
       context: .
       args:
-        - VERSION=0.22.10 # Specify the PocketBase version here
-    container_name: pocketbase
-    restart: unless-stopped
-    command:
-      - --encryptionEnv # optional
-      - ENCRYPTION # optional
+        - VERSION=0.22.21
+    container_name: pocketbase-dev
     environment:
-      ENCRYPTION: example # optional
+      PB_HOST: 0.0.0.0
+      PB_PORT: 8090
     ports:
       - "8090:8090"
     volumes:
-      - /path/to/data:/pb_data
-      - /path/to/public:/pb_public # optional
-      - /path/to/hooks:/pb_hooks # optional
-    healthcheck: # optional, recommended since v0.10.0
-      test: wget --no-verbose --tries=1 --spider http://localhost:8090/api/health || exit 1
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - ./pb_data:/pb_data
+      - ./pb_public:/pb_public
+      - ./pb_hooks:/pb_hooks
+    command: ["--dev"]
 ```
+
+### Database Administration
+
+> [!IMPORTANT]  
+> These examples assume you have a running PocketBase container.
+
+#### Using Docker CLI with Running Container
+
+```bash
+# First, start your PocketBase container (if not already running)
+docker run -d --name pocketbase -p 8090:8090 -v $(pwd)/pb_data:/pb_data ghcr.io/muchobien/pocketbase:latest
+
+# Create admin user in running container
+docker exec -it pocketbase /usr/local/bin/pocketbase admin create
+
+# Run migrations in running container
+docker exec pocketbase /usr/local/bin/pocketbase migrate
+
+# Create backup in running container
+docker exec pocketbase /usr/local/bin/pocketbase admin create-backup
+
+# List backups
+docker exec pocketbase /usr/local/bin/pocketbase admin list-backups
+```
+
+#### Using Docker Compose
+
+```yaml
+# compose.yml - your running setup
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: pocketbase
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./pb_data:/pb_data
+```
+
+```bash
+# Start your services
+docker compose up -d
+
+# Administration commands via compose
+docker compose exec pocketbase pocketbase admin create
+docker compose exec pocketbase pocketbase migrate
+docker compose exec pocketbase pocketbase admin create-backup
+docker compose exec pocketbase pocketbase admin list-backups
+
+# View logs
+docker compose logs pocketbase
+
+# Stop services
+docker compose down
+```
+
+#### One-time Administration (without running container)
+
+> [!TIP]
+> Use this approach when you need to run admin commands before starting the server permanently.
+
+```bash
+# Create admin user before starting server
+docker run --rm -it -v $(pwd)/pb_data:/pb_data \
+  ghcr.io/muchobien/pocketbase:latest admin create
+
+# Run migrations before starting server
+docker run --rm -v $(pwd)/pb_data:/pb_data \
+  ghcr.io/muchobien/pocketbase:latest migrate
+
+# Then start your server normally
+docker run -d --name pocketbase -p 8090:8090 -v $(pwd)/pb_data:/pb_data \
+  ghcr.io/muchobien/pocketbase:latest
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Port already in use:**
+
+```bash
+# Use a different port
+docker run --rm -p 3000:3000 -e PB_PORT=3000 ghcr.io/muchobien/pocketbase:latest
+```
+
+**Permission issues with volumes:**
+
+> [!CAUTION]
+> On Linux systems, ensure proper file ownership for mounted volumes.
+
+```bash
+# Ensure proper ownership (Linux/macOS)
+sudo chown -R 1000:1000 ./pb_data ./pb_public ./pb_hooks
+```
+
+**Cannot connect from outside container:**
+
+```bash
+# Ensure PB_HOST is set to 0.0.0.0 (default)
+docker run --rm -p 8090:8090 -e PB_HOST=0.0.0.0 ghcr.io/muchobien/pocketbase:latest
+```
+
+### Debugging
+
+```bash
+# Check container logs
+docker logs pocketbase
+
+# Access container shell
+docker exec -it pocketbase /bin/sh
+
+# Run with debug logging
+docker run --rm -p 8090:8090 ghcr.io/muchobien/pocketbase:latest --dev
+```
+
+## Image Information
+
+### Supported Architectures
+
+This image supports multiple architectures. Docker will automatically pull the correct image for your platform:
+
+| Architecture   | Status |
+| -------------- | ------ |
+| `linux/amd64`  | ✅     |
+| `linux/arm64`  | ✅     |
+| `linux/arm/v7` | ✅     |
+
+### Available Tags
+
+| Tag      | Description                        |
+| -------- | ---------------------------------- |
+| `latest` | Latest PocketBase release          |
+| `0.22.x` | Specific version (e.g., `0.22.21`) |
+| `0.22`   | Latest patch in minor version      |
+| `0`      | Latest release in major version    |
 
 ## Related Repositories
 
-- [PocketBase GitHub Repository](https://github.com/pocketbase/pocketbase)
+- [PocketBase](https://github.com/pocketbase/pocketbase) - The official PocketBase repository
+- [PocketBase Documentation](https://pocketbase.io/docs/) - Official documentation

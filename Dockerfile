@@ -1,4 +1,4 @@
-FROM alpine:3 as downloader
+FROM alpine:3 AS downloader
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -14,7 +14,8 @@ RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${VERSION}/
 FROM alpine:3
 RUN apk update && apk add ca-certificates tzdata && rm -rf /var/cache/apk/*
 
-EXPOSE 8090
-
 COPY --from=downloader /pocketbase /usr/local/bin/pocketbase
-ENTRYPOINT ["/usr/local/bin/pocketbase", "serve", "--http=0.0.0.0:8090", "--dir=/pb_data", "--publicDir=/pb_public", "--hooksDir=/pb_hooks"]
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
