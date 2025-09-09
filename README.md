@@ -114,7 +114,6 @@ Below are example configurations for production deployment.
 ### Using Docker Compose (Recommended)
 
 ```yaml
-version: "3.8"
 services:
   pocketbase:
     image: ghcr.io/muchobien/pocketbase:latest
@@ -127,6 +126,7 @@ services:
       # Optional: Enable settings encryption (32-character key)
       # https://pocketbase.io/docs/going-to-production/#enable-settings-encryption
       ENCRYPTION: $(openssl rand -hex 16)
+      # Optional: Set timezone
       TZ: Europe/Berlin
     ports:
       - "8090:8090" # Change both port and PB_PORT for custom ports: "3000:3000"
@@ -188,14 +188,14 @@ docker run -d \
 
 # Development setup with logging
 
+```bash
 docker run -d \
  --name=pocketbase-dev \
  -p 8090:8090 \
  -v $(pwd)/pb_data:/pb_data \
  ghcr.io/muchobien/pocketbase:latest \
  --dev
-
-````
+```
 
 ## Advanced Usage
 
@@ -210,12 +210,11 @@ docker build --build-arg VERSION=0.23.0 -t my-pocketbase:0.23.0 .
 
 # Build without specifying version (uses default from Dockerfile)
 docker build -t my-pocketbase:dev .
-````
+```
 
 ### Docker Compose for Development
 
 ```yaml
-version: "3.8"
 services:
   pocketbase:
     build:
@@ -262,8 +261,7 @@ docker exec pocketbase /usr/local/bin/pocketbase admin list-backups
 #### Using Docker Compose
 
 ```yaml
-# docker-compose.yml - your running setup
-version: "3.8"
+# compose.yml - your running setup
 services:
   pocketbase:
     image: ghcr.io/muchobien/pocketbase:latest
@@ -276,19 +274,19 @@ services:
 
 ```bash
 # Start your services
-docker-compose up -d
+docker compose up -d
 
 # Administration commands via compose
-docker-compose exec pocketbase /usr/local/bin/pocketbase admin create
-docker-compose exec pocketbase /usr/local/bin/pocketbase migrate
-docker-compose exec pocketbase /usr/local/bin/pocketbase admin create-backup
-docker-compose exec pocketbase /usr/local/bin/pocketbase admin list-backups
+docker compose exec pocketbase pocketbase admin create
+docker compose exec pocketbase pocketbase migrate
+docker compose exec pocketbase pocketbase admin create-backup
+docker compose exec pocketbase pocketbase admin list-backups
 
 # View logs
-docker-compose logs pocketbase
+docker compose logs pocketbase
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
 #### One-time Administration (without running container)
