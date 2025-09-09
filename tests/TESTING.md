@@ -24,7 +24,9 @@ The test suite covers all implemented features with **8 comprehensive tests**:
 - `PB_HOST`: Network interface to bind to (default: `0.0.0.0`)
 - `PB_PORT`: Port to listen on (default: `8090`)
 - `PB_ADMIN_EMAIL`: Admin email for automatic superuser creation
-- `PB_ADMIN_PASSWORD`: Admin password for automatic superuser creation### 3. Development Mode
+- `PB_ADMIN_PASSWORD`: Admin password for automatic superuser creation
+
+### 3. Development Mode
 
 - **Test**: Container starts with `--dev` flag
 - **Verification**: Health check confirms development mode active
