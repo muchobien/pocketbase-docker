@@ -169,9 +169,36 @@ else
     exit 1
 fi
 
-# Test 7: Shell access
+# Test 7: Automatic superuser creation
 echo ""
-echo "7️⃣  Testing shell access..."
+echo "7️⃣  Testing automatic superuser creation..."
+docker compose -f compose.test.yaml up -d test-superuser
+
+if wait_for_health test-superuser; then
+    if test_endpoint "http://localhost:8093/api/health"; then
+        # Check if superuser creation message appears in logs
+        sleep 3  # Wait a moment for logs to be written
+        superuser_logs=$(docker compose -f compose.test.yaml logs test-superuser 2>&1)
+        if echo "$superuser_logs" | grep -q "Successfully saved superuser"; then
+            print_status "PASS" "Automatic superuser creation is working"
+        else
+            print_status "FAIL" "Superuser creation message not found in logs"
+            echo "Logs output:"
+            echo "$superuser_logs"
+            exit 1
+        fi
+    else
+        print_status "FAIL" "Superuser test service health check failed"
+        exit 1
+    fi
+else
+    print_status "FAIL" "Superuser test service failed to start"
+    exit 1
+fi
+
+# Test 8: Shell access
+echo ""
+echo "8️⃣  Testing shell access..."
 shell_output=$(docker compose -f compose.test.yaml run --rm --entrypoint=/bin/sh test-version -c "echo 'Shell access works'")
 if echo "$shell_output" | grep -q "Shell access works"; then
     print_status "PASS" "Shell access works"
@@ -191,6 +218,7 @@ echo "   ✅ Development mode (--dev flag)"
 echo "   ✅ Version command (--version)"
 echo "   ✅ Help command (--help)"
 echo "   ✅ Direct admin commands"
+echo "   ✅ Automatic superuser creation"
 echo "   ✅ Shell access"
 echo ""
 echo "🚀 Docker image is ready for use!"

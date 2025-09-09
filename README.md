@@ -33,15 +33,18 @@ docker run --rm -p 8090:8090 ghcr.io/muchobien/pocketbase:latest
 - 🚀 **Smart Entrypoint**: Automatically serves PocketBase with sensible defaults
 - 🔧 **Flexible Commands**: Run any PocketBase command (admin, migrate, etc.)
 - 🌐 **Configurable Host/Port**: Use `PB_HOST` and `PB_PORT` environment variables
-- 📦 **Multi-Architecture**: Supports amd64, arm64, and armv7
+- � **Auto Superuser**: Automatically create/update superuser with `PB_ADMIN_EMAIL` and `PB_ADMIN_PASSWORD`
+- �📦 **Multi-Architecture**: Supports amd64, arm64, and armv7
 - 🛡️ **Secure Defaults**: Follows Docker and PocketBase best practices
 
 ## Environment Variables
 
-| Variable  | Default   | Description                  |
-| --------- | --------- | ---------------------------- |
-| `PB_HOST` | `0.0.0.0` | Network interface to bind to |
-| `PB_PORT` | `8090`    | Port to listen on            |
+| Variable            | Default   | Description                                     |
+| ------------------- | --------- | ----------------------------------------------- |
+| `PB_HOST`           | `0.0.0.0` | Network interface to bind to                    |
+| `PB_PORT`           | `8090`    | Port to listen on                               |
+| `PB_ADMIN_EMAIL`    | -         | Admin email for automatic superuser creation    |
+| `PB_ADMIN_PASSWORD` | -         | Admin password for automatic superuser creation |
 
 > [!NOTE]  
 > When changing `PB_PORT`, remember to also update the Docker port mapping (e.g., `-p 3000:3000` for port 3000).
@@ -67,6 +70,31 @@ docker run --rm -p 8090:8090 -e PB_HOST=127.0.0.1 ghcr.io/muchobien/pocketbase:l
 # Custom host and port
 docker run --rm -p 9000:9000 -e PB_HOST=0.0.0.0 -e PB_PORT=9000 ghcr.io/muchobien/pocketbase:latest
 ```
+
+### Automatic Superuser Creation
+
+```bash
+# Create superuser automatically on startup
+docker run --rm -p 8090:8090 \
+  -e PB_ADMIN_EMAIL=admin@example.com \
+  -e PB_ADMIN_PASSWORD=supersecret123 \
+  ghcr.io/muchobien/pocketbase:latest
+
+# With data persistence
+docker run -d --name pocketbase \
+  -p 8090:8090 \
+  -v $(pwd)/pb_data:/pb_data \
+  -e PB_ADMIN_EMAIL=admin@example.com \
+  -e PB_ADMIN_PASSWORD=supersecret123 \
+  ghcr.io/muchobien/pocketbase:latest
+```
+
+> [!NOTE]
+> The superuser is created/updated only when using default serve behavior (no custom commands).
+> Uses `pocketbase superuser upsert` internally, so it's safe to restart containers.
+
+> [!WARNING]
+> Store admin credentials securely! Consider using Docker secrets or encrypted environment files in production.
 
 ### Development Mode
 
@@ -123,6 +151,9 @@ services:
       # Optional: Configure host and port (defaults: 0.0.0.0:8090)
       PB_HOST: 0.0.0.0
       PB_PORT: 8090
+      # Optional: Auto-create superuser (recommended for production)
+      PB_ADMIN_EMAIL: admin@yourdomain.com
+      PB_ADMIN_PASSWORD: your-secure-password-here
       # Optional: Enable settings encryption (32-character key)
       # https://pocketbase.io/docs/going-to-production/#enable-settings-encryption
       ENCRYPTION: $(openssl rand -hex 16)
@@ -168,12 +199,14 @@ docker run -d \
   --restart unless-stopped \
   ghcr.io/muchobien/pocketbase:latest
 
-# With custom port, host, and encryption
+# With custom port, host, superuser, and encryption
 docker run -d \
   --name=pocketbase \
   -p 3000:3000 \
   -e PB_HOST=0.0.0.0 \
   -e PB_PORT=3000 \
+  -e PB_ADMIN_EMAIL=admin@yourdomain.com \
+  -e PB_ADMIN_PASSWORD=your-secure-password-here \
   -e ENCRYPTION=$(openssl rand -hex 16) \
   -v $(pwd)/pb_data:/pb_data \
   -v $(pwd)/pb_public:/pb_public \
