@@ -4,7 +4,7 @@ This document describes the testing setup for the PocketBase Docker image.
 
 ## Test Coverage
 
-The test suite covers all implemented features:
+The test suite covers all implemented features with **8 comprehensive tests**:
 
 ### 1. Default Server Behavior
 
@@ -18,6 +18,13 @@ The test suite covers all implemented features:
 - **Configuration**: `PB_HOST=0.0.0.0`, `PB_PORT=8091`
 - **Verification**: Health check on `http://localhost:8091/api/health`
 - **Expected**: PocketBase serves on configured host/port
+
+**Supported Environment Variables:**
+
+- `PB_HOST`: Network interface to bind to (default: `0.0.0.0`)
+- `PB_PORT`: Port to listen on (default: `8090`)
+- `PB_ADMIN_EMAIL`: Admin email for automatic superuser creation
+- `PB_ADMIN_PASSWORD`: Admin password for automatic superuser creation
 
 ### 3. Development Mode
 
@@ -37,7 +44,14 @@ The test suite covers all implemented features:
 - **Verification**: Output contains admin command help
 - **Expected**: Commands pass through to PocketBase binary
 
-### 6. Shell Access
+### 6. Automatic Superuser Creation
+
+- **Test**: Container automatically creates superuser when environment variables are set
+- **Configuration**: `PB_ADMIN_EMAIL=test@example.com`, `PB_ADMIN_PASSWORD=testpassword123`
+- **Verification**: Health check and log verification for "Successfully saved superuser" message
+- **Expected**: Superuser is created/updated on container startup
+
+### 7. Shell Access
 
 - **Test**: Can execute shell commands in container
 - **Verification**: Simple shell command execution
@@ -49,7 +63,7 @@ The test suite covers all implemented features:
 
 - Docker and Docker Compose installed
 - `curl` and `wget` available (for health checks)
-- Port 8090, 8091, and 8092 available on host
+- Ports 8090, 8091, 8092, and 8093 available on host
 
 ### Local Testing
 
@@ -128,11 +142,11 @@ The test script provides colored output:
 
 #### Port Conflicts
 
-If tests fail due to port conflicts, ensure ports 8090, 8091, and 8092 are available:
+If tests fail due to port conflicts, ensure ports 8090, 8091, 8092, and 8093 are available:
 
 ```bash
 # Check port usage
-lsof -i :8090 -i :8091 -i :8092
+lsof -i :8090 -i :8091 -i :8092 -i :8093
 
 # Stop conflicting services (from project root)
 docker compose -f tests/compose.test.yaml down
