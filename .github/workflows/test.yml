@@ -1,0 +1,61 @@
+name: Test Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Get latest PocketBase release
+        id: pocketbase
+        uses: actions/github-script@v8
+        env:
+          OWNER: pocketbase
+          REPO: pocketbase
+          EXCLUDES: '["draft", "prerelease"]'
+        with:
+          result-encoding: string
+          script: |
+            const {OWNER,REPO,EXCLUDES} = process.env;
+            const {data} = await github.rest.repos.listReleases({
+              owner: OWNER,
+              repo: REPO
+            })
+
+            const releases = data.filter(release => JSON.parse(EXCLUDES).every(exclude => !release[exclude]))
+            const latest = releases[0]
+
+            return latest.tag_name.replace('v','')
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run Docker tests
+        run: cd tests && ./test.sh
+        env:
+          VERSION: ${{ steps.pocketbase.outputs.result }}
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          echo "=== Container logs ==="
+          docker compose -f tests/compose.test.yaml logs || true
+          echo "=== Container status ==="
+          docker compose -f tests/compose.test.yaml ps -a || true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker compose -f tests/compose.test.yaml down -v --remove-orphans || true
+          docker system prune -f || true

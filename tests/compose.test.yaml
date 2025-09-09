@@ -1,0 +1,92 @@
+services:
+  test-default:
+    build:
+      context: ..
+      args:
+        VERSION: "${VERSION:-0.30.0}"
+    container_name: pocketbase-test-default
+    ports:
+      - "8090:8090"
+    environment:
+      - PB_HOST=0.0.0.0
+      - PB_PORT=8090
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8090/api/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  test-custom-env:
+    build:
+      context: ..
+      args:
+        VERSION: "${VERSION:-0.30.0}"
+    container_name: pocketbase-test-custom-env
+    ports:
+      - "8091:8091"
+    environment:
+      - PB_HOST=0.0.0.0
+      - PB_PORT=8091
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8091/api/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  test-dev-mode:
+    build:
+      context: ..
+      args:
+        VERSION: "${VERSION:-0.30.0}"
+    container_name: pocketbase-test-dev
+    ports:
+      - "8092:8092"
+    environment:
+      - PB_HOST=0.0.0.0
+      - PB_PORT=8092
+    command: ["serve", "--dev", "--http=0.0.0.0:8092"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8092/api/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  test-version:
+    build:
+      context: ..
+      args:
+        VERSION: "${VERSION:-0.30.0}"
+    container_name: pocketbase-test-version
+    command: ["--version"]
+
+  test-help:
+    build:
+      context: ..
+      args:
+        VERSION: "${VERSION:-0.30.0}"
+    container_name: pocketbase-test-help
+    command: ["--help"]

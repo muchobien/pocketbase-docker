@@ -1,0 +1,187 @@
+#!/bin/bash
+set -e
+
+echo "🧪 Starting PocketBase Docker Tests..."
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Function to print status
+print_status() {
+    local status=$1
+    local message=$2
+    if [ "$status" = "PASS" ]; then
+        echo -e "${GREEN}✅ PASS${NC}: $message"
+    elif [ "$status" = "FAIL" ]; then
+        echo -e "${RED}❌ FAIL${NC}: $message"
+        return 1
+    else
+        echo -e "${YELLOW}ℹ️  INFO${NC}: $message"
+    fi
+}
+
+# Function to wait for service health
+wait_for_health() {
+    local service=$1
+    local timeout=${2:-60}
+    local count=0
+    
+    echo "⏳ Waiting for $service to be healthy..."
+    
+    while [ $count -lt $timeout ]; do
+        if docker compose -f compose.test.yaml ps "$service" | grep -q "healthy"; then
+            return 0
+        fi
+        sleep 2
+        count=$((count + 2))
+    done
+    
+    return 1
+}
+
+# Function to test HTTP endpoint
+test_endpoint() {
+    local url=$1
+    local expected_status=${2:-200}
+    
+    local response_code
+    response_code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo "000")
+    
+    if [ "$response_code" = "$expected_status" ]; then
+        return 0
+    else
+        echo "Expected status $expected_status, got $response_code for $url"
+        return 1
+    fi
+}
+
+# Clean up function
+cleanup() {
+    echo "🧹 Cleaning up test environment..."
+    docker compose -f compose.test.yaml down -v --remove-orphans
+}
+
+# Set trap to cleanup on exit
+trap cleanup EXIT
+
+echo "🏗️  Building Docker image..."
+docker compose -f compose.test.yaml build
+
+echo ""
+echo "🧪 Running Tests..."
+echo ""
+
+# Test 1: Default serve behavior
+echo "1️⃣  Testing default serve behavior..."
+docker compose -f compose.test.yaml up -d test-default
+
+if wait_for_health test-default; then
+    if test_endpoint "http://localhost:8090/api/health"; then
+        print_status "PASS" "Default serve is working on port 8090"
+    else
+        print_status "FAIL" "Default serve health check failed"
+        exit 1
+    fi
+else
+    print_status "FAIL" "Default serve failed to start"
+    exit 1
+fi
+
+# Test 2: Custom environment variables
+echo ""
+echo "2️⃣  Testing custom environment variables (PB_HOST, PB_PORT)..."
+docker compose -f compose.test.yaml up -d test-custom-env
+
+if wait_for_health test-custom-env; then
+    if test_endpoint "http://localhost:8091/api/health"; then
+        print_status "PASS" "Custom environment variables working (port 8091)"
+    else
+        print_status "FAIL" "Custom port health check failed"
+        exit 1
+    fi
+else
+    print_status "FAIL" "Custom environment service failed to start"
+    exit 1
+fi
+
+# Test 3: Development mode
+echo ""
+echo "3️⃣  Testing development mode with --dev flag..."
+docker compose -f compose.test.yaml up -d test-dev-mode
+
+if wait_for_health test-dev-mode; then
+    if test_endpoint "http://localhost:8091/api/health"; then
+        print_status "PASS" "Development mode is working"
+    else
+        print_status "FAIL" "Development mode health check failed"
+        exit 1
+    fi
+else
+    print_status "FAIL" "Development mode failed to start"
+    exit 1
+fi
+
+# Test 4: Version command
+echo ""
+echo "4️⃣  Testing --version command..."
+version_output=$(docker compose -f compose.test.yaml run --rm test-version 2>&1)
+if echo "$version_output" | grep -q "pocketbase"; then
+    print_status "PASS" "Version command works"
+else
+    print_status "FAIL" "Version command failed"
+    echo "Output: $version_output"
+    exit 1
+fi
+
+# Test 5: Help command
+echo ""
+echo "5️⃣  Testing --help command..."
+help_output=$(docker compose -f compose.test.yaml run --rm test-help 2>&1)
+if echo "$help_output" | grep -q "Available Commands"; then
+    print_status "PASS" "Help command works"
+else
+    print_status "FAIL" "Help command failed"
+    echo "Output: $help_output"
+    exit 1
+fi
+
+# Test 6: Direct command execution (admin commands)
+echo ""
+echo "6️⃣  Testing direct admin command execution..."
+admin_output=$(docker compose -f compose.test.yaml run --rm test-version superuser --help 2>&1)
+if echo "$admin_output" | grep -q "Manage superusers"; then
+    print_status "PASS" "Direct admin commands work"
+else
+    print_status "FAIL" "Direct admin commands failed"
+    echo "Output: $admin_output"
+    exit 1
+fi
+
+# Test 7: Shell access
+echo ""
+echo "7️⃣  Testing shell access..."
+shell_output=$(docker compose -f compose.test.yaml run --rm --entrypoint=/bin/sh test-version -c "echo 'Shell access works'")
+if echo "$shell_output" | grep -q "Shell access works"; then
+    print_status "PASS" "Shell access works"
+else
+    print_status "FAIL" "Shell access failed"
+    echo "Output: $shell_output"
+    exit 1
+fi
+
+echo ""
+echo "🎉 All tests passed successfully!"
+echo ""
+print_status "INFO" "Test Summary:"
+echo "   ✅ Default serve behavior"
+echo "   ✅ Custom environment variables (PB_HOST, PB_PORT)"
+echo "   ✅ Development mode (--dev flag)"
+echo "   ✅ Version command (--version)"
+echo "   ✅ Help command (--help)"
+echo "   ✅ Direct admin commands"
+echo "   ✅ Shell access"
+echo ""
+echo "🚀 Docker image is ready for use!"
