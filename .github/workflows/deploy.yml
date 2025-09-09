@@ -58,9 +58,39 @@ jobs:
 
             return latest.metadata.container.tags.find((v) => /^v?\d+\.\d+\.\d+$/.test(v)) || '0.0.0'
 
-  release:
+  test:
     runs-on: ubuntu-latest
     needs: check
+    if: (needs.check.outputs.pocketbase != needs.check.outputs.package) || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run Docker tests
+        run: cd tests && ./test.sh
+        env:
+          VERSION: ${{ github.event.inputs.version || needs.check.outputs.pocketbase }}
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          echo "=== Container logs ==="
+          docker compose -f tests/compose.test.yaml logs || true
+          echo "=== Container status ==="
+          docker compose -f tests/compose.test.yaml ps -a || true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker compose -f tests/compose.test.yaml down -v --remove-orphans || true
+          docker system prune -f || true
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [check, test]
     if: (needs.check.outputs.pocketbase != needs.check.outputs.package) || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
