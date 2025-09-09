@@ -15,8 +15,8 @@ The test suite covers all implemented features:
 ### 2. Environment Variable Configuration
 
 - **Test**: Custom `PB_HOST` and `PB_PORT` environment variables
-- **Configuration**: `PB_HOST=127.0.0.1`, `PB_PORT=9090`
-- **Verification**: Health check on `http://localhost:9090/api/health`
+- **Configuration**: `PB_HOST=0.0.0.0`, `PB_PORT=8091`
+- **Verification**: Health check on `http://localhost:8091/api/health`
 - **Expected**: PocketBase serves on configured host/port
 
 ### 3. Development Mode
@@ -49,7 +49,7 @@ The test suite covers all implemented features:
 
 - Docker and Docker Compose installed
 - `curl` and `wget` available (for health checks)
-- Port 8090, 8091, and 9090 available on host
+- Port 8090, 8091, and 8092 available on host
 
 ### Local Testing
 
@@ -128,11 +128,11 @@ The test script provides colored output:
 
 #### Port Conflicts
 
-If tests fail due to port conflicts, ensure ports 8090, 8091, and 9090 are available:
+If tests fail due to port conflicts, ensure ports 8090, 8091, and 8092 are available:
 
 ```bash
 # Check port usage
-lsof -i :8090 -i :8091 -i :9090
+lsof -i :8090 -i :8091 -i :8092
 
 # Stop conflicting services (from project root)
 docker compose -f tests/compose.test.yaml down

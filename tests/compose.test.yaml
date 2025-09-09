@@ -57,9 +57,6 @@ services:
     container_name: pocketbase-test-dev
     ports:
       - "8092:8092"
-    environment:
-      - PB_HOST=0.0.0.0
-      - PB_PORT=8092
     command: ["serve", "--dev", "--http=0.0.0.0:8092"]
     healthcheck:
       test:

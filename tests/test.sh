@@ -113,8 +113,17 @@ echo "3️⃣  Testing development mode with --dev flag..."
 docker compose -f compose.test.yaml up -d test-dev-mode
 
 if wait_for_health test-dev-mode; then
-    if test_endpoint "http://localhost:8091/api/health"; then
-        print_status "PASS" "Development mode is working"
+    if test_endpoint "http://localhost:8092/api/health"; then
+        # Verify --dev flag is actually passed to the running process
+        dev_process_check=$(docker compose -f compose.test.yaml exec -T test-dev-mode ps aux | grep pocketbase | grep -c -- "--dev" || echo "0")
+        if [ "$dev_process_check" -gt 0 ]; then
+            print_status "PASS" "Development mode is working with --dev flag verified in process"
+        else
+            print_status "FAIL" "Development mode health check passed but --dev flag not found in process"
+            echo "Process info:"
+            docker compose -f compose.test.yaml exec -T test-dev-mode ps aux | grep pocketbase || true
+            exit 1
+        fi
     else
         print_status "FAIL" "Development mode health check failed"
         exit 1

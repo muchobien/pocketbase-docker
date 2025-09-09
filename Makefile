@@ -37,5 +37,5 @@ test-env:
 	@echo "🧪 Testing environment variables only..."
 	@docker compose -f tests/compose.test.yaml up -d test-custom-env
 	@sleep 15
-	@curl -f http://localhost:9090/api/health && echo "✅ Environment test passed" || echo "❌ Environment test failed"
+	@curl -f http://localhost:8091/api/health && echo "✅ Environment test passed" || echo "❌ Environment test failed"
 	@docker compose -f tests/compose.test.yaml down
