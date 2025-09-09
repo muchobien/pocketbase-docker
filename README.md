@@ -31,7 +31,7 @@ docker run --rm -p 8090:8090 ghcr.io/muchobien/pocketbase:latest
 ## Features
 
 - 🚀 **Smart Entrypoint**: Automatically serves PocketBase with sensible defaults
-- 🔧 **Flexible Commands**: Run any PocketBase command (admin, migrate, etc.)
+- 🔧 **Flexible Commands**: Run any PocketBase command (migrate, superuser, etc.)
 - 🌐 **Configurable Host/Port**: Use `PB_HOST` and `PB_PORT` environment variables
 - � **Auto Superuser**: Automatically create/update superuser with `PB_ADMIN_EMAIL` and `PB_ADMIN_PASSWORD`
 - �📦 **Multi-Architecture**: Supports amd64, arm64, and armv7
@@ -121,11 +121,11 @@ docker run --rm ghcr.io/muchobien/pocketbase:latest --version
 # Run database migrations
 docker run --rm -v ./pb_data:/pb_data ghcr.io/muchobien/pocketbase:latest migrate
 
-# Create admin user
-docker run --rm -it -v ./pb_data:/pb_data ghcr.io/muchobien/pocketbase:latest admin create
+# Create superuser
+docker run --rm -it -v ./pb_data:/pb_data ghcr.io/muchobien/pocketbase:latest superuser create
 
-# Admin help
-docker run --rm ghcr.io/muchobien/pocketbase:latest admin --help
+# Superuser help
+docker run --rm ghcr.io/muchobien/pocketbase:latest superuser --help
 ```
 
 ### Shell Access
@@ -278,17 +278,17 @@ services:
 # First, start your PocketBase container (if not already running)
 docker run -d --name pocketbase -p 8090:8090 -v $(pwd)/pb_data:/pb_data ghcr.io/muchobien/pocketbase:latest
 
-# Create admin user in running container
-docker exec -it pocketbase /usr/local/bin/pocketbase admin create
+# Create superuser in running container
+docker exec -it pocketbase /usr/local/bin/pocketbase superuser create --dir /pb_data
 
 # Run migrations in running container
-docker exec pocketbase /usr/local/bin/pocketbase migrate
+docker exec pocketbase /usr/local/bin/pocketbase migrate --dir /pb_data
 
-# Create backup in running container
-docker exec pocketbase /usr/local/bin/pocketbase admin create-backup
+# Check PocketBase version
+docker exec pocketbase /usr/local/bin/pocketbase --version --dir /pb_data
 
-# List backups
-docker exec pocketbase /usr/local/bin/pocketbase admin list-backups
+# View superuser help
+docker exec pocketbase /usr/local/bin/pocketbase superuser --help --dir /pb_data
 ```
 
 #### Using Docker Compose
@@ -310,10 +310,10 @@ services:
 docker compose up -d
 
 # Administration commands via compose
-docker compose exec pocketbase pocketbase admin create
-docker compose exec pocketbase pocketbase migrate
-docker compose exec pocketbase pocketbase admin create-backup
-docker compose exec pocketbase pocketbase admin list-backups
+docker compose exec pocketbase pocketbase superuser create --dir /pb_data
+docker compose exec pocketbase pocketbase migrate --dir /pb_data
+docker compose exec pocketbase pocketbase --version --dir /pb_data
+docker compose exec pocketbase pocketbase superuser --help --dir /pb_data
 
 # View logs
 docker compose logs pocketbase
@@ -328,9 +328,9 @@ docker compose down
 > Use this approach when you need to run admin commands before starting the server permanently.
 
 ```bash
-# Create admin user before starting server
+# Create superuser before starting server
 docker run --rm -it -v $(pwd)/pb_data:/pb_data \
-  ghcr.io/muchobien/pocketbase:latest admin create
+  ghcr.io/muchobien/pocketbase:latest superuser create
 
 # Run migrations before starting server
 docker run --rm -v $(pwd)/pb_data:/pb_data \
@@ -367,6 +367,23 @@ sudo chown -R 1000:1000 ./pb_data ./pb_public ./pb_hooks
 ```bash
 # Ensure PB_HOST is set to 0.0.0.0 (default)
 docker run --rm -p 8090:8090 -e PB_HOST=0.0.0.0 ghcr.io/muchobien/pocketbase:latest
+```
+
+**Updating PocketBase:**
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/muchobien/pocketbase:latest
+
+# Stop and remove old container
+docker stop pocketbase && docker rm pocketbase
+
+# Start with new image (preserve data with volume mounts)
+docker run -d --name pocketbase -p 8090:8090 -v $(pwd)/pb_data:/pb_data ghcr.io/muchobien/pocketbase:latest
+
+# Or with Docker Compose
+docker compose pull
+docker compose up -d
 ```
 
 ### Debugging
