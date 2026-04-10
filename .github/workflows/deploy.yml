@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Get latest pocketbase release
         id: pocketbase
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           OWNER: pocketbase
           REPO: pocketbase
@@ -38,7 +38,7 @@ jobs:
 
       - name: Get latest package version
         id: package
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           PACKAGE_NAME: pocketbase
           PACKAGE_TYPE: container
