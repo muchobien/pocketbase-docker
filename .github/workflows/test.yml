@@ -19,7 +19,7 @@ jobs:
 
       - name: Get latest PocketBase release
         id: pocketbase
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           OWNER: pocketbase
           REPO: pocketbase
