@@ -1,4 +1,4 @@
-FROM alpine:3 AS downloader
+FROM alpine:3.24.1 AS downloader
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -11,7 +11,7 @@ RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${VERSION}/
     && unzip pocketbase_${VERSION}_${BUILDX_ARCH}.zip \
     && chmod +x /pocketbase
 
-FROM alpine:3
+FROM alpine:3.24.1
 RUN apk update && apk add ca-certificates tzdata && rm -rf /var/cache/apk/*
 
 COPY --from=downloader /pocketbase /usr/local/bin/pocketbase
