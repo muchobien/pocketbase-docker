@@ -7,7 +7,6 @@ updates:
       interval: "daily"
 
   # Track Alpine base image updates so OS-level security patches (e.g. OpenSSL CVEs)
-  # get picked up promptly without waiting for a new PocketBase release
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
