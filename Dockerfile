@@ -7,9 +7,10 @@ ARG VERSION
 
 ENV BUILDX_ARCH="${TARGETOS:-linux}_${TARGETARCH:-amd64}${TARGETVARIANT}"
 
-RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${VERSION}/pocketbase_${VERSION}_${BUILDX_ARCH}.zip \
-    && unzip pocketbase_${VERSION}_${BUILDX_ARCH}.zip \
-    && chmod +x /pocketbase
+RUN wget -q -O /tmp/pocketbase.zip "https://ganigeorgiev.com/meta/pocketbase/pocketbase/download/v${VERSION}/pocketbase_${VERSION}_${BUILDX_ARCH}.zip" \
+    && unzip /tmp/pocketbase.zip -d / \
+    && chmod +x /pocketbase \
+    && rm /tmp/pocketbase.zip
 
 FROM alpine:3.24.3
 RUN apk update && apk add ca-certificates tzdata && rm -rf /var/cache/apk/*
