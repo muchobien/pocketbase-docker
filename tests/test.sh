@@ -32,7 +32,9 @@ wait_for_health() {
     echo "⏳ Waiting for $service to be healthy..."
     
     while [ $count -lt $timeout ]; do
-        if docker compose -f compose.test.yaml ps "$service" | grep -q "healthy"; then
+        local container_id
+        container_id=$(docker compose -f compose.test.yaml ps -q "$service")
+        if [ -n "$container_id" ] && docker inspect --format '{{.State.Health.Status}}' "$container_id" 2>/dev/null | grep -q '^healthy$'; then
             return 0
         fi
         sleep 2

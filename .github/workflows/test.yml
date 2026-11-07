@@ -9,6 +9,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -17,26 +20,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Get latest PocketBase release
-        id: pocketbase
-        uses: actions/github-script@v9
+      - name: Resolve latest PocketBase version
+        id: upstream
         env:
-          OWNER: pocketbase
-          REPO: pocketbase
-          EXCLUDES: '["draft", "prerelease"]'
-        with:
-          result-encoding: string
-          script: |
-            const {OWNER,REPO,EXCLUDES} = process.env;
-            const {data} = await github.rest.repos.listReleases({
-              owner: OWNER,
-              repo: REPO
-            })
+          FILTER: 'channel.repository.name="pocketbase" && channel.repository.project.name="pocketbase" && channel.name="default" && draft=false'
+        run: |
+          set -euo pipefail
 
-            const releases = data.filter(release => JSON.parse(EXCLUDES).every(exclude => !release[exclude]))
-            const latest = releases[0]
+          VERSION=$(curl -fsSL --get "https://ganigeorgiev.com/api/collections/releases/records" \
+            --data-urlencode "filter=${FILTER}" \
+            --data-urlencode "sort=-semver" \
+            --data-urlencode "perPage=20" \
+            | jq -r '[.items[].tag | select(test("-") | not)][0] // empty' \
+            | sed 's/^v//')
 
-            return latest.tag_name.replace('v','')
+          if [ -z "${VERSION}" ]; then
+            echo "Unable to resolve the latest stable PocketBase release." >&2
+            exit 1
+          fi
+
+          echo "Resolved PocketBase ${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -44,7 +48,7 @@ jobs:
       - name: Run Docker tests
         run: cd tests && ./test.sh
         env:
-          VERSION: ${{ steps.pocketbase.outputs.result }}
+          VERSION: ${{ steps.upstream.outputs.version }}
 
       - name: Show container logs on failure
         if: failure()
