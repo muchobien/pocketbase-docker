@@ -28,17 +28,17 @@ wait_for_health() {
     local service=$1
     local timeout=${2:-60}
     local count=0
-    
+
     echo "⏳ Waiting for $service to be healthy..."
-    
-    while [ $count -lt $timeout ]; do
+
+    while [ "$count" -lt "$timeout" ]; do
         if docker compose -f compose.test.yaml ps "$service" | grep -q "healthy"; then
             return 0
         fi
         sleep 2
         count=$((count + 2))
     done
-    
+
     return 1
 }
 
@@ -46,10 +46,10 @@ wait_for_health() {
 test_endpoint() {
     local url=$1
     local expected_status=${2:-200}
-    
+
     local response_code
     response_code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo "000")
-    
+
     if [ "$response_code" = "$expected_status" ]; then
         return 0
     else
@@ -177,7 +177,7 @@ docker compose -f compose.test.yaml up -d test-superuser
 if wait_for_health test-superuser; then
     if test_endpoint "http://localhost:8093/api/health"; then
         # Check if superuser creation message appears in logs
-        sleep 3  # Wait a moment for logs to be written
+        sleep 3 # Wait a moment for logs to be written
         superuser_logs=$(docker compose -f compose.test.yaml logs test-superuser 2>&1)
         if echo "$superuser_logs" | grep -q "Successfully saved superuser"; then
             print_status "PASS" "Automatic superuser creation is working"
