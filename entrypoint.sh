@@ -32,10 +32,19 @@ create_superuser() {
     fi
 }
 
+serve() {
+    create_superuser "$@"
+    exec /usr/local/bin/pocketbase serve \
+        --http="${HOST}:${PORT}" \
+        --dir=/pb_data \
+        --publicDir=/pb_public \
+        --hooksDir=/pb_hooks \
+        "$@"
+}
+
 # If no arguments passed, use default serve command
 if [ $# -eq 0 ]; then
-    create_superuser
-    exec /usr/local/bin/pocketbase serve --http="${HOST}:${PORT}" --dir=/pb_data --publicDir=/pb_public --hooksDir=/pb_hooks
+    serve
 fi
 
 # Handle global flags that should go to main pocketbase command
@@ -47,8 +56,7 @@ esac
 
 # If first argument starts with '-', treat as serve arguments
 if [ "${1#-}" != "$1" ]; then
-    create_superuser "$@"
-    exec /usr/local/bin/pocketbase serve --http="${HOST}:${PORT}" --dir=/pb_data --publicDir=/pb_public --hooksDir=/pb_hooks "$@"
+    serve "$@"
 fi
 
 # Otherwise, pass all arguments directly to pocketbase
