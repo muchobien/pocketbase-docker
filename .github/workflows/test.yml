@@ -10,41 +10,16 @@ on:
   workflow_dispatch:
 
 jobs:
+  pocketbase:
+    uses: ./.github/workflows/latest-pocketbase-release.yml
+
   test:
     runs-on: ubuntu-latest
+    needs: pocketbase
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-
-      - name: Get latest PocketBase release
-        id: pocketbase
-        uses: actions/github-script@v9
-        env:
-          OWNER: pocketbase
-          REPO: pocketbase
-        with:
-          result-encoding: string
-          script: |
-            const {OWNER,REPO} = process.env;
-            const url = new URL('https://ganigeorgiev.com/api/collections/releases/records');
-            url.search = new URLSearchParams({
-              filter: `channel.repository.name="${REPO}" && channel.repository.project.name="${OWNER}" && channel.name="default" && draft=false && tag !~ "-"`,
-              sort: '-semver',
-              perPage: '1'
-            }).toString();
-
-            const response = await fetch(url);
-            if (!response.ok) {
-              throw new Error(`Unable to fetch PocketBase releases: ${response.status}`);
-            }
-
-            const {items: releases} = await response.json();
-            if (!releases.length) {
-              throw new Error('No stable PocketBase release found');
-            }
-
-            return releases[0].tag.replace(/^v/, '');
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -52,7 +27,7 @@ jobs:
       - name: Run Docker tests
         run: cd tests && ./test.sh
         env:
-          VERSION: ${{ steps.pocketbase.outputs.result }}
+          VERSION: ${{ needs.pocketbase.outputs.version }}
 
       - name: Show container logs on failure
         if: failure()

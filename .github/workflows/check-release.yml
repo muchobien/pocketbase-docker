@@ -1,0 +1,54 @@
+name: Check PocketBase releases
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pocketbase:
+    uses: ./.github/workflows/latest-pocketbase-release.yml
+
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      package: ${{ steps.package.outputs.result }}
+    steps:
+      - name: Get latest package version
+        id: package
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          VERSION=$(gh api "/orgs/${GITHUB_REPOSITORY_OWNER}/packages/container/pocketbase/versions" \
+            --jq 'map(select(.metadata.container.tags | index("latest")))
+              | .[0].metadata.container.tags
+              | map(select(test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")))
+              | .[0] // "0.0.0"')
+
+          echo "result=${VERSION}" >> "$GITHUB_OUTPUT"
+
+  dispatch:
+    runs-on: ubuntu-latest
+    needs: [pocketbase, check]
+    if: needs.pocketbase.outputs.version != needs.check.outputs.package
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Dispatch PocketBase release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.pocketbase.outputs.version }}
+        run: |
+          gh workflow run deploy.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$GITHUB_REF_NAME" \
+            --raw-field "version=${VERSION}"
