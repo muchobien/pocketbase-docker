@@ -20,31 +20,19 @@ jobs:
       - name: Get latest PocketBase release
         id: pocketbase
         run: |
-          python3 <<'PY'
-          import os
-          import re
-          import urllib.request
-          import xml.etree.ElementTree as ET
+          set -euo pipefail
 
-          with urllib.request.urlopen("https://ganigeorgiev.com/meta/pocketbase/pocketbase/releases.atom?channel=txqvk9m38gdowv1", timeout=30) as response:
-              feed = ET.parse(response).getroot()
+          VERSION=$(curl -fsSL --max-time 30 "https://ganigeorgiev.com/meta/pocketbase/pocketbase/releases.atom?channel=txqvk9m38gdowv1" \
+            | yq -p xml -oy -er --xml-strict-mode \
+              --xml-raw-token=false --xml-keep-namespace=false '
+                [.feed.entry] | flatten | .[]
+                | select([.category] | flatten | any_c(.["+@term"] == "default"))
+                | .title
+                | select(test("^v?[0-9]+\\.[0-9]+\\.[0-9]+ release$"))
+                | sub("^v", "") | sub(" release$", "")' \
+            | sort -V | tail -n 1)
 
-          namespace = {"atom": "http://www.w3.org/2005/Atom"}
-          versions = []
-          for entry in feed.findall("atom:entry", namespace):
-              if not any(category.get("term") == "default" for category in entry.findall("atom:category", namespace)):
-                  continue
-              match = re.fullmatch(r"v?([0-9]+)\.([0-9]+)\.([0-9]+) release", entry.findtext("atom:title", default="", namespaces=namespace))
-              if match:
-                  versions.append(tuple(map(int, match.groups())))
-
-          if not versions:
-              raise SystemExit("No stable PocketBase release found")
-
-          version = ".".join(map(str, max(versions)))
-          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-              output.write(f"result={version}\n")
-          PY
+          echo "result=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
