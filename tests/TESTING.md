@@ -113,6 +113,9 @@ mise run test:env
 docker compose -f tests/compose.test.yaml up test-default
 ```
 
+The focused test tasks wait for container health before checking the HTTP endpoint,
+return a failure status when either check fails, and clean up their test resources on exit.
+
 #### Clean Up
 
 ```bash
@@ -122,6 +125,8 @@ mise run clean
 # Manual cleanup (from project root)
 docker compose -f tests/compose.test.yaml down -v --remove-orphans
 ```
+
+Cleanup removes the test project's containers, volumes, and networks.
 
 ### CI/CD Testing
 
@@ -189,11 +194,10 @@ docker compose -f tests/compose.test.yaml logs
 
 #### Build Issues
 
-Clean Docker cache and rebuild:
+Remove test containers and volumes, then rebuild:
 
 ```bash
 mise run clean
-docker system prune -f
 mise run build:test
 ```
 

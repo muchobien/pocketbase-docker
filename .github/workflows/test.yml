@@ -44,4 +44,3 @@ jobs:
         if: always()
         run: |
           docker compose -f tests/compose.test.yaml down -v --remove-orphans || true
-          docker system prune -f || true
