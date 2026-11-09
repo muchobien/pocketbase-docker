@@ -14,7 +14,7 @@ description = "Format shell scripts with shfmt"
 run = "shfmt -w -i 4 -ci entrypoint.sh tests/test.sh"
 
 [tasks."build:test"]
-description = "Build Docker images for test services"
+description = "Build the shared Docker test image"
 run = "docker compose -f tests/compose.test.yaml build"
 
 [tasks.test]
