@@ -1,4 +1,4 @@
-.PHONY: test build clean help
+.PHONY: test build clean help lint format
 
 # Default target
 help:
@@ -7,6 +7,15 @@ help:
 	@echo "  make build   - Build Docker image"
 	@echo "  make clean   - Clean up test containers and volumes"
 	@echo "  make help    - Show this help message"
+	@echo "  make lint    - Check shell scripts with ShellCheck and shfmt"
+	@echo "  make format  - Format shell scripts with shfmt"
+
+lint:
+	shellcheck entrypoint.sh tests/test.sh
+	shfmt -d -i 4 -ci entrypoint.sh tests/test.sh
+
+format:
+	shfmt -w -i 4 -ci entrypoint.sh tests/test.sh
 
 # Build the Docker image
 build:

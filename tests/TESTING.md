@@ -75,6 +75,19 @@ The test suite covers the following startup and command scenarios:
 
 ### Local Testing
 
+#### Lint and Format Shell Scripts
+
+Install ShellCheck and shfmt, then run from the project root:
+
+```sh
+make lint
+make format
+```
+
+`make lint` checks shell scripts for lint and formatting issues. `make format`
+applies shell formatting. The lint workflow runs both checks for shell script,
+Makefile, and workflow changes.
+
 #### Run All Tests
 
 ```bash

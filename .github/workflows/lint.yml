@@ -1,4 +1,4 @@
-name: Lint GitHub Actions
+name: Lint
 
 on:
   push:
@@ -7,12 +7,18 @@ on:
     paths:
       - .github/workflows/**
       - .github/dependabot.yml
+      - '**/*.sh'
+      - Makefile
+      - mise.toml
   pull_request:
     branches:
       - main
     paths:
       - .github/workflows/**
       - .github/dependabot.yml
+      - '**/*.sh'
+      - Makefile
+      - mise.toml
   workflow_dispatch:
 
 permissions:
@@ -36,3 +42,18 @@ jobs:
         uses: jdx/jactionlint@v2.5.0
         with:
           profile: correctness
+
+  shell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install ShellCheck and shfmt
+        uses: jdx/mise-action@v5
+
+      - name: Lint shell scripts
+        run: make lint
