@@ -76,7 +76,7 @@ The test suite covers the following startup and command scenarios:
 
 ### Local Testing
 
-#### Lint and Format Shell Scripts
+#### Lint Workflows and Shell Scripts
 
 Install the pinned tools and run tasks from the project root:
 
@@ -86,9 +86,10 @@ mise run lint
 mise run format
 ```
 
-`mise run lint` checks shell scripts for lint and formatting issues. `mise run format`
-applies shell formatting. The lint workflow runs both checks for shell script,
-mise configuration, and workflow changes. Run `mise tasks` to list available tasks.
+`mise run lint` checks GitHub Actions with jactionlint's correctness profile and
+shell scripts with ShellCheck and shfmt. `mise run format` applies shell formatting.
+The lint workflow runs these checks for shell script, mise configuration, and
+workflow changes. Run `mise tasks` to list available tasks.
 
 #### Run All Tests
 

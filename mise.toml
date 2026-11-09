@@ -1,10 +1,12 @@
 [tools]
+jactionlint = "2.5.0"
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
 
 [tasks.lint]
-description = "Check shell scripts with ShellCheck and shfmt"
+description = "Check GitHub Actions and shell scripts"
 run = [
+  "jactionlint --profile correctness",
   "shellcheck entrypoint.sh tests/test.sh",
   "shfmt -d -i 4 -ci entrypoint.sh tests/test.sh",
 ]
