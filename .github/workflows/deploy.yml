@@ -21,20 +21,28 @@ jobs:
         env:
           OWNER: pocketbase
           REPO: pocketbase
-          EXCLUDES: '["draft", "prerelease"]'
         with:
           result-encoding: string
           script: |
-            const {OWNER,REPO,EXCLUDES} = process.env;
-            const {data} = await github.rest.repos.listReleases({
-              owner: OWNER,
-              repo: REPO
-            })
+            const {OWNER,REPO} = process.env;
+            const url = new URL('https://ganigeorgiev.com/api/collections/releases/records');
+            url.search = new URLSearchParams({
+              filter: `channel.repository.name="${REPO}" && channel.repository.project.name="${OWNER}" && channel.name="default" && draft=false && tag !~ "-"`,
+              sort: '-semver',
+              perPage: '1'
+            }).toString();
 
-            const releases = data.filter(release => JSON.parse(EXCLUDES).every(exclude => !release[exclude]))
-            const latest = releases[0]
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error(`Unable to fetch PocketBase releases: ${response.status}`);
+            }
 
-            return latest.tag_name.replace('v','')
+            const {items: releases} = await response.json();
+            if (!releases.length) {
+              throw new Error('No stable PocketBase release found');
+            }
+
+            return releases[0].tag.replace(/^v/, '');
 
       - name: Get latest package version
         id: package

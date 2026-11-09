@@ -3,7 +3,7 @@ services:
     build:
       context: ..
       args:
-        VERSION: "${VERSION:-0.30.0}"
+        VERSION: "${VERSION:-0.41.1}"
     container_name: pocketbase-test-default
     ports:
       - "8090:8090"
@@ -28,7 +28,7 @@ services:
     build:
       context: ..
       args:
-        VERSION: "${VERSION:-0.30.0}"
+        VERSION: "${VERSION:-0.41.1}"
     container_name: pocketbase-test-custom-env
     ports:
       - "8091:8091"
@@ -53,7 +53,7 @@ services:
     build:
       context: ..
       args:
-        VERSION: "${VERSION:-0.30.0}"
+        VERSION: "${VERSION:-0.41.1}"
     container_name: pocketbase-test-dev
     ports:
       - "8092:8092"
@@ -76,7 +76,7 @@ services:
     build:
       context: ..
       args:
-        VERSION: "${VERSION:-0.30.0}"
+        VERSION: "${VERSION:-0.41.1}"
     container_name: pocketbase-test-version
     command: ["--version"]
 
@@ -84,7 +84,7 @@ services:
     build:
       context: ..
       args:
-        VERSION: "${VERSION:-0.30.0}"
+        VERSION: "${VERSION:-0.41.1}"
     container_name: pocketbase-test-help
     command: ["--help"]
 
@@ -92,7 +92,7 @@ services:
     build:
       context: ..
       args:
-        VERSION: "${VERSION:-0.30.0}"
+        VERSION: "${VERSION:-0.41.1}"
     container_name: pocketbase-test-superuser
     ports:
       - "8093:8093"
