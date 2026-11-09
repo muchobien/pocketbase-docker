@@ -1,0 +1,34 @@
+name: Get latest PocketBase release
+
+on:
+  workflow_call:
+    outputs:
+      version:
+        description: Latest stable PocketBase version
+        value: ${{ jobs.resolve.outputs.version }}
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.pocketbase.outputs.result }}
+    steps:
+      - name: Get latest PocketBase release
+        id: pocketbase
+        run: |
+          set -euo pipefail
+
+          VERSION=$(curl -fsSL --max-time 30 "https://ganigeorgiev.com/meta/pocketbase/pocketbase/releases.atom?channel=txqvk9m38gdowv1" \
+            | yq -p xml -oy -er --xml-strict-mode \
+              --xml-raw-token=false --xml-keep-namespace=false '
+                [.feed.entry] | flatten | .[]
+                | select([.category] | flatten | any_c(.["+@term"] == "default"))
+                | .title
+                | select(test("^v?[0-9]+\\.[0-9]+\\.[0-9]+ release$"))
+                | sub("^v", "") | sub(" release$", "")' \
+            | sort -V | tail -n 1)
+
+          echo "result=${VERSION}" >> "$GITHUB_OUTPUT"
