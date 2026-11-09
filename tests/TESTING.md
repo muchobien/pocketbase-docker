@@ -68,6 +68,7 @@ The test suite covers the following startup and command scenarios:
 
 ### Prerequisites
 
+- [mise](https://mise.jdx.dev/) installed
 - Docker and Docker Compose installed
 - `curl` and `wget` available (for health checks)
 - `jq`, `head`, and `base64` available (for authentication and test credentials)
@@ -77,35 +78,36 @@ The test suite covers the following startup and command scenarios:
 
 #### Lint and Format Shell Scripts
 
-Install ShellCheck and shfmt, then run from the project root:
+Install the pinned tools and run tasks from the project root:
 
 ```sh
-make lint
-make format
+mise install
+mise run lint
+mise run format
 ```
 
-`make lint` checks shell scripts for lint and formatting issues. `make format`
+`mise run lint` checks shell scripts for lint and formatting issues. `mise run format`
 applies shell formatting. The lint workflow runs both checks for shell script,
-Makefile, and workflow changes.
+mise configuration, and workflow changes. Run `mise tasks` to list available tasks.
 
 #### Run All Tests
 
 ```bash
-# Using the test script (from project root)
-./tests/test.sh
-
-# Using Make (from project root)
-make test
+# From the project root
+mise run test
 ```
+
+The `test`, `test:default`, and `test:env` tasks depend on `build:test`, so mise
+builds the test images before running them. If the build fails, the tests do not run.
 
 #### Run Specific Tests
 
 ```bash
 # Test default behavior only
-make test-default
+mise run test:default
 
 # Test environment variables only
-make test-env
+mise run test:env
 
 # Manual service testing (from project root)
 docker compose -f tests/compose.test.yaml up test-default
@@ -115,7 +117,7 @@ docker compose -f tests/compose.test.yaml up test-default
 
 ```bash
 # Clean up all test resources (from project root)
-make clean
+mise run clean
 
 # Manual cleanup (from project root)
 docker compose -f tests/compose.test.yaml down -v --remove-orphans
@@ -137,7 +139,7 @@ pocketbase-docker/
 │   ├── compose.test.yaml   # Test service definitions
 │   ├── test.sh             # Main test runner script
 │   └── TESTING.md          # This documentation
-├── Makefile               # Convenient test commands
+├── mise.toml              # Tool versions and project tasks
 ├── Dockerfile             # Docker image definition
 └── entrypoint.sh          # Container entrypoint script
 ```
@@ -190,9 +192,9 @@ docker compose -f tests/compose.test.yaml logs
 Clean Docker cache and rebuild:
 
 ```bash
-make clean
+mise run clean
 docker system prune -f
-make build
+mise run build:test
 ```
 
 ## Test Maintenance
