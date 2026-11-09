@@ -6,10 +6,10 @@
 </p>
 
 <p align="center">
-   <a aria-label="Latest PocketBase Version" href="https://github.com/pocketbase/pocketbase/releases" target="_blank">
-    <img alt="Latest PocketBase Version" src="https://img.shields.io/github/v/release/pocketbase/pocketbase?color=success&display_name=tag&label=latest&logo=docker&logoColor=%23fff&sort=semver&style=flat-square">
+   <a aria-label="Latest PocketBase Version" href="https://ganigeorgiev.com/pocketbase/pocketbase/releases" target="_blank">
+    <img alt="Latest PocketBase Version" src="https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Fganigeorgiev.com%2Fmeta%2Fpocketbase%2Fpocketbase%2Freleases.atom%3Fchannel%3Dtxqvk9m38gdowv1&query=substring-before(%2F%2F*%5Blocal-name()%3D%22entry%22%5D%5B*%5Blocal-name()%3D%22category%22%5D%2F%40term%3D%22default%22%5D%5B1%5D%2F*%5Blocal-name()%3D%22title%22%5D%2C%22%20release%22)&color=success&label=latest&logo=docker&logoColor=%23fff&style=flat-square">
   </a>
-  <a aria-label="Supported architectures" href="https://github.com/pocketbase/pocketbase/releases" target="_blank">
+  <a aria-label="Supported architectures" href="https://ganigeorgiev.com/pocketbase/pocketbase/releases" target="_blank">
     <img alt="Supported Docker architectures" src="https://img.shields.io/badge/platform-amd64%20%7C%20arm64%20%7C%20armv7-brightgreen?style=flat-square&logo=linux&logoColor=%23fff">
   </a>
 </p>
@@ -422,5 +422,5 @@ This image supports multiple architectures. Docker will automatically pull the c
 
 ## Related Repositories
 
-- [PocketBase](https://github.com/pocketbase/pocketbase) - The official PocketBase repository
+- [PocketBase](https://ganigeorgiev.com/pocketbase/pocketbase) - The official PocketBase repository
 - [PocketBase Documentation](https://pocketbase.io/docs/) - Official documentation
