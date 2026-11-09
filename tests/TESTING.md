@@ -98,7 +98,15 @@ mise run test
 ```
 
 The `test`, `test:default`, and `test:env` tasks depend on `build:test`, so mise
-builds the test images before running them. If the build fails, the tests do not run.
+builds the shared `pocketbase-test:local` image before running them. All test services
+use that image. If the build fails, the tests do not run.
+
+Local test builds default to PocketBase `0.41.1`. Set `VERSION` to select a release
+explicitly:
+
+```sh
+VERSION=0.41.1 mise run test
+```
 
 #### Run Specific Tests
 
@@ -110,6 +118,7 @@ mise run test:default
 mise run test:env
 
 # Manual service testing (from project root)
+mise run build:test
 docker compose -f tests/compose.test.yaml up test-default
 ```
 
@@ -132,9 +141,13 @@ Cleanup removes the test project's containers, volumes, and networks.
 
 The GitHub Actions workflow (`.github/workflows/test.yml`) automatically runs all tests on:
 
-- Push to `main` or `develop` branches
+- Push to `main` branch
 - Pull requests to `main` branch
 - Manual workflow dispatch
+
+It resolves the latest stable PocketBase release and passes that version to
+`.github/workflows/docker-tests.yml`. The release workflow calls the same test
+workflow with its requested version, then publishes that version after tests pass.
 
 ### Test Structure
 

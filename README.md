@@ -234,16 +234,14 @@ docker run -d \
 
 ### Building the Image Locally
 
+The `VERSION` build argument is required. Select the PocketBase release to include
+in the image:
+
 ```bash
-# Build with specific PocketBase version
-docker build --build-arg VERSION=0.22.21 -t my-pocketbase .
-
-# Build with latest version (uses latest release from GitHub)
-docker build --build-arg VERSION=0.23.0 -t my-pocketbase:0.23.0 .
-
-# Build without specifying version (uses default from Dockerfile)
-docker build -t my-pocketbase:dev .
+docker build --build-arg VERSION=0.41.1 -t my-pocketbase:0.41.1 .
 ```
+
+The release workflow uses its supplied version for both testing and publishing.
 
 ### Docker Compose for Development
 
@@ -253,7 +251,7 @@ services:
     build:
       context: .
       args:
-        - VERSION=0.22.21
+        - VERSION=0.41.1
     container_name: pocketbase-dev
     environment:
       PB_HOST: 0.0.0.0

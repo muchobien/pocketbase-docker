@@ -1,5 +1,10 @@
+x-test-image: &test-image
+  image: pocketbase-test:local
+  pull_policy: never
+
 services:
   test-default:
+    <<: *test-image
     build:
       context: ..
       args:
@@ -25,10 +30,7 @@ services:
       retries: 3
 
   test-custom-env:
-    build:
-      context: ..
-      args:
-        VERSION: "${VERSION:-0.41.1}"
+    <<: *test-image
     container_name: pocketbase-test-custom-env
     ports:
       - "8091:8091"
@@ -50,10 +52,7 @@ services:
       retries: 3
 
   test-dev-mode:
-    build:
-      context: ..
-      args:
-        VERSION: "${VERSION:-0.41.1}"
+    <<: *test-image
     container_name: pocketbase-test-dev
     ports:
       - "8092:8092"
@@ -73,26 +72,17 @@ services:
       retries: 3
 
   test-version:
-    build:
-      context: ..
-      args:
-        VERSION: "${VERSION:-0.41.1}"
+    <<: *test-image
     container_name: pocketbase-test-version
     command: ["--version"]
 
   test-help:
-    build:
-      context: ..
-      args:
-        VERSION: "${VERSION:-0.41.1}"
+    <<: *test-image
     container_name: pocketbase-test-help
     command: ["--help"]
 
   test-superuser:
-    build:
-      context: ..
-      args:
-        VERSION: "${VERSION:-0.41.1}"
+    <<: *test-image
     container_name: pocketbase-test-superuser
     ports:
       - "8093:8093"
@@ -115,10 +105,7 @@ services:
       retries: 3
 
   test-encrypted-superuser:
-    build:
-      context: ..
-      args:
-        VERSION: "${VERSION:-0.41.1}"
+    <<: *test-image
     container_name: pocketbase-test-encrypted-superuser
     ports:
       - "8094:8094"
