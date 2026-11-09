@@ -125,14 +125,9 @@ services:
     environment:
       - PB_PORT=8094
       - PB_ADMIN_EMAIL=test@example.com
-    entrypoint: ["/bin/sh", "-ec"]
-    command:
-      - |
-        export PB_TEST_KEY="$$(head -c 24 /dev/urandom | base64)"
-        export PB_ADMIN_PASSWORD="$$(head -c 24 /dev/urandom | base64)"
-        pocketbase migrate up --dir=/pb_data --encryptionEnv=PB_TEST_KEY
-        /usr/local/bin/entrypoint.sh --encryptionEnv=PB_TEST_KEY --help
-        exec /usr/local/bin/entrypoint.sh --encryptionEnv PB_TEST_KEY
+      - PB_ADMIN_PASSWORD=${PB_TEST_ADMIN_PASSWORD:-}
+      - PB_TEST_KEY
+    command: ["--encryptionEnv", "PB_TEST_KEY"]
     healthcheck:
       test:
         [
