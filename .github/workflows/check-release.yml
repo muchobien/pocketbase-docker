@@ -20,18 +20,32 @@ jobs:
     steps:
       - name: Get latest pocketbase release
         id: pocketbase
-        env:
-          FILTER: 'channel.repository.name="pocketbase" && channel.repository.project.name="pocketbase" && channel.name="default" && draft=false && tag !~ "-"'
         run: |
-          set -euo pipefail
+          python3 <<'PY'
+          import os
+          import re
+          import urllib.request
+          import xml.etree.ElementTree as ET
 
-          VERSION=$(curl -fsSL --get "https://ganigeorgiev.com/api/collections/releases/records" \
-            --data-urlencode "filter=${FILTER}" \
-            --data-urlencode "sort=-semver" \
-            --data-urlencode "perPage=1" \
-            | jq -er '.items[0].tag // error("No stable PocketBase release found") | sub("^v"; "")')
+          with urllib.request.urlopen("https://ganigeorgiev.com/meta/pocketbase/pocketbase/releases.atom?channel=txqvk9m38gdowv1", timeout=30) as response:
+              feed = ET.parse(response).getroot()
 
-          echo "result=${VERSION}" >> "$GITHUB_OUTPUT"
+          namespace = {"atom": "http://www.w3.org/2005/Atom"}
+          versions = []
+          for entry in feed.findall("atom:entry", namespace):
+              if not any(category.get("term") == "default" for category in entry.findall("atom:category", namespace)):
+                  continue
+              match = re.fullmatch(r"v?([0-9]+)\.([0-9]+)\.([0-9]+) release", entry.findtext("atom:title", default="", namespaces=namespace))
+              if match:
+                  versions.append(tuple(map(int, match.groups())))
+
+          if not versions:
+              raise SystemExit("No stable PocketBase release found")
+
+          version = ".".join(map(str, max(versions)))
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"result={version}\n")
+          PY
 
       - name: Get latest package version
         id: package
