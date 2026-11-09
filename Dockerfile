@@ -8,6 +8,9 @@ ARG VERSION
 ENV BUILDX_ARCH="${TARGETOS:-linux}_${TARGETARCH:-amd64}${TARGETVARIANT}"
 
 RUN wget https://ganigeorgiev.com/meta/pocketbase/pocketbase/download/v${VERSION}/pocketbase_${VERSION}_${BUILDX_ARCH}.zip \
+    && wget https://ganigeorgiev.com/meta/pocketbase/pocketbase/download/v${VERSION}/checksums.txt \
+    && awk -v archive="pocketbase_${VERSION}_${BUILDX_ARCH}.zip" '$2 == archive' checksums.txt \
+        | sha256sum -c - \
     && unzip pocketbase_${VERSION}_${BUILDX_ARCH}.zip \
     && chmod +x /pocketbase
 
