@@ -1,3 +1,51 @@
 [tools]
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
+
+[tasks.lint]
+description = "Check shell scripts with ShellCheck and shfmt"
+run = [
+  "shellcheck entrypoint.sh tests/test.sh",
+  "shfmt -d -i 4 -ci entrypoint.sh tests/test.sh",
+]
+
+[tasks.format]
+description = "Format shell scripts with shfmt"
+run = "shfmt -w -i 4 -ci entrypoint.sh tests/test.sh"
+
+[tasks."build:test"]
+description = "Build Docker images for test services"
+run = "docker compose -f tests/compose.test.yaml build"
+
+[tasks.test]
+description = "Run all Docker tests"
+depends = ["build:test"]
+dir = "tests"
+run = "./test.sh"
+
+[tasks.clean]
+description = "Clean up test containers, volumes, and unused Docker resources"
+run = '''
+docker compose -f tests/compose.test.yaml down -v --remove-orphans 2>/dev/null || true
+docker system prune -f 2>/dev/null || true
+'''
+
+[tasks."test:default"]
+description = "Test default serve behavior"
+depends = ["build:test"]
+run = '''
+docker compose -f tests/compose.test.yaml up -d test-default
+sleep 15
+curl -f http://localhost:8090/api/health && echo "✅ Default test passed" || echo "❌ Default test failed"
+docker compose -f tests/compose.test.yaml down
+'''
+
+[tasks."test:env"]
+description = "Test custom environment variables"
+depends = ["build:test"]
+run = '''
+docker compose -f tests/compose.test.yaml up -d test-custom-env
+sleep 15
+curl -f http://localhost:8091/api/health && echo "✅ Environment test passed" || echo "❌ Environment test failed"
+docker compose -f tests/compose.test.yaml down
+'''

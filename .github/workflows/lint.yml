@@ -8,7 +8,6 @@ on:
       - .github/workflows/**
       - .github/dependabot.yml
       - '**/*.sh'
-      - Makefile
       - mise.toml
   pull_request:
     branches:
@@ -17,7 +16,6 @@ on:
       - .github/workflows/**
       - .github/dependabot.yml
       - '**/*.sh'
-      - Makefile
       - mise.toml
   workflow_dispatch:
 
@@ -56,4 +54,4 @@ jobs:
         uses: jdx/mise-action@v5
 
       - name: Lint shell scripts
-        run: make lint
+        run: mise run lint

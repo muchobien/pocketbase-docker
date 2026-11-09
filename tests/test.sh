@@ -67,9 +67,6 @@ cleanup() {
 # Set trap to cleanup on exit
 trap cleanup EXIT
 
-echo "🏗️  Building Docker image..."
-docker compose -f compose.test.yaml build
-
 echo ""
 echo "🧪 Running Tests..."
 echo ""
