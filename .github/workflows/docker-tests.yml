@@ -1,3 +1,5 @@
+# This workflow is managed by gh actions-lock.
+
 name: Run Docker tests
 
 on:
