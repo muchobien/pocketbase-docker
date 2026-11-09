@@ -9,6 +9,7 @@ on:
       - .github/dependabot.yml
       - '**/*.sh'
       - Makefile
+      - mise.toml
   pull_request:
     branches:
       - main
@@ -17,6 +18,7 @@ on:
       - .github/dependabot.yml
       - '**/*.sh'
       - Makefile
+      - mise.toml
   workflow_dispatch:
 
 permissions:
@@ -52,10 +54,6 @@ jobs:
 
       - name: Install ShellCheck and shfmt
         uses: jdx/mise-action@v5
-        with:
-          tool_versions: |
-            shellcheck 0.11.0
-            shfmt 3.14.1
 
       - name: Lint shell scripts
         run: make lint
