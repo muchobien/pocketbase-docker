@@ -36,22 +36,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Lint GitHub Actions
-        uses: jdx/jactionlint@v2.5.0
-        with:
-          profile: correctness
-
-  shell:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Install ShellCheck and shfmt
+      - name: Install lint tools
         uses: jdx/mise-action@v5
 
-      - name: Lint shell scripts
+      - name: Lint GitHub Actions and shell scripts
         run: mise run lint
