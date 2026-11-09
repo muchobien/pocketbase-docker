@@ -11,7 +11,27 @@ DEFAULT_SERVE_ARGS="serve --http=${HOST}:${PORT} --dir=/pb_data --publicDir=/pb_
 # Function to create superuser if environment variables are set
 create_superuser() {
     if [ -n "$PB_ADMIN_EMAIL" ] && [ -n "$PB_ADMIN_PASSWORD" ]; then
-        /usr/local/bin/pocketbase superuser upsert "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" --dir=/pb_data
+        encryption_env=
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --encryptionEnv)
+                    encryption_env=${2-}
+                    if [ $# -gt 1 ]; then
+                        shift
+                    fi
+                    ;;
+                --encryptionEnv=*)
+                    encryption_env=${1#*=}
+                    ;;
+            esac
+            shift
+        done
+
+        set --
+        if [ -n "$encryption_env" ]; then
+            set -- --encryptionEnv "$encryption_env"
+        fi
+        /usr/local/bin/pocketbase superuser upsert "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" --dir=/pb_data "$@"
     fi
 }
 
@@ -30,7 +50,7 @@ esac
 
 # If first argument starts with '-', treat as serve arguments
 if [ "${1#-}" != "$1" ]; then
-    create_superuser
+    create_superuser "$@"
     exec /usr/local/bin/pocketbase $DEFAULT_SERVE_ARGS "$@"
 fi
 

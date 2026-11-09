@@ -209,6 +209,43 @@ else
 fi
 
 echo ""
+echo "9️⃣  Testing automatic superuser creation after an encrypted restart..."
+PB_TEST_KEY=$(head -c 24 /dev/urandom | base64)
+PB_TEST_ADMIN_PASSWORD=$(head -c 24 /dev/urandom | base64)
+export PB_TEST_KEY PB_TEST_ADMIN_PASSWORD
+docker compose -f compose.test.yaml up -d test-encrypted-superuser
+
+if ! wait_for_health test-encrypted-superuser; then
+    print_status "FAIL" "Encrypted superuser service failed to start"
+    exit 1
+fi
+
+auth_token=$(curl -fsS \
+    -H 'Content-Type: application/json' \
+    --data "{\"identity\":\"test@example.com\",\"password\":\"$PB_TEST_ADMIN_PASSWORD\"}" \
+    http://localhost:8094/api/collections/_superusers/auth-with-password | jq -er '.token')
+curl -fsS -X PATCH \
+    -H "Authorization: $auth_token" \
+    -H 'Content-Type: application/json' \
+    --data '{"meta":{"appName":"Encrypted restart test"}}' \
+    http://localhost:8094/api/settings >/dev/null
+unset auth_token
+
+docker compose -f compose.test.yaml restart test-encrypted-superuser
+
+if wait_for_health test-encrypted-superuser; then
+    if test_endpoint "http://localhost:8094/api/health"; then
+        print_status "PASS" "Automatic superuser creation works after an encrypted restart"
+    else
+        print_status "FAIL" "Encrypted superuser health check failed"
+        exit 1
+    fi
+else
+    print_status "FAIL" "Encrypted superuser service failed to start"
+    exit 1
+fi
+
+echo ""
 echo "🎉 All tests passed successfully!"
 echo ""
 print_status "INFO" "Test Summary:"
@@ -219,6 +256,7 @@ echo "   ✅ Version command (--version)"
 echo "   ✅ Help command (--help)"
 echo "   ✅ Direct admin commands"
 echo "   ✅ Automatic superuser creation"
+echo "   ✅ Automatic superuser creation after an encrypted restart"
 echo "   ✅ Shell access"
 echo ""
 echo "🚀 Docker image is ready for use!"
