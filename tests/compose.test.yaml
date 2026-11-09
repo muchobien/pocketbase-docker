@@ -113,3 +113,36 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
+
+  test-encrypted-superuser:
+    build:
+      context: ..
+      args:
+        VERSION: "${VERSION:-0.41.1}"
+    container_name: pocketbase-test-encrypted-superuser
+    ports:
+      - "8094:8094"
+    environment:
+      - PB_PORT=8094
+      - PB_ADMIN_EMAIL=test@example.com
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        export PB_TEST_KEY="$$(head -c 24 /dev/urandom | base64)"
+        export PB_ADMIN_PASSWORD="$$(head -c 24 /dev/urandom | base64)"
+        pocketbase migrate up --dir=/pb_data --encryptionEnv=PB_TEST_KEY
+        /usr/local/bin/entrypoint.sh --encryptionEnv=PB_TEST_KEY --help
+        exec /usr/local/bin/entrypoint.sh --encryptionEnv PB_TEST_KEY
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8094/api/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 3

@@ -4,7 +4,7 @@ This document describes the testing setup for the PocketBase Docker image.
 
 ## Test Coverage
 
-The test suite covers all implemented features with **8 comprehensive tests**:
+The test suite covers the following startup and command scenarios:
 
 ### 1. Default Server Behavior
 
@@ -57,13 +57,21 @@ The test suite covers all implemented features with **8 comprehensive tests**:
 - **Verification**: Simple shell command execution
 - **Expected**: Container provides shell access for debugging
 
+### 8. Automatic Superuser Creation with Encrypted Settings
+
+- **Test**: Initialize an encrypted database, then start the entrypoint with automatic superuser creation and `--encryptionEnv`
+- **Configuration**: Encryption key and superuser password generated inside the container
+- **Flags**: Both `--encryptionEnv=KEY` and `--encryptionEnv KEY`
+- **Verification**: Health check on `http://localhost:8094/api/health`
+- **Expected**: Superuser creation reads the encrypted settings and the server starts
+
 ## Running Tests
 
 ### Prerequisites
 
 - Docker and Docker Compose installed
 - `curl` and `wget` available (for health checks)
-- Ports 8090, 8091, 8092, and 8093 available on host
+- Ports 8090, 8091, 8092, 8093, and 8094 available on host
 
 ### Local Testing
 
@@ -142,11 +150,11 @@ The test script provides colored output:
 
 #### Port Conflicts
 
-If tests fail due to port conflicts, ensure ports 8090, 8091, 8092, and 8093 are available:
+If tests fail due to port conflicts, ensure ports 8090, 8091, 8092, 8093, and 8094 are available:
 
 ```bash
 # Check port usage
-lsof -i :8090 -i :8091 -i :8092 -i :8093
+lsof -i :8090 -i :8091 -i :8092 -i :8093 -i :8094
 
 # Stop conflicting services (from project root)
 docker compose -f tests/compose.test.yaml down

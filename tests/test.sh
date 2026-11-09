@@ -209,6 +209,22 @@ else
 fi
 
 echo ""
+echo "9️⃣  Testing automatic superuser creation with encrypted settings..."
+docker compose -f compose.test.yaml up -d test-encrypted-superuser
+
+if wait_for_health test-encrypted-superuser; then
+    if test_endpoint "http://localhost:8094/api/health"; then
+        print_status "PASS" "Automatic superuser creation works with encrypted settings"
+    else
+        print_status "FAIL" "Encrypted superuser health check failed"
+        exit 1
+    fi
+else
+    print_status "FAIL" "Encrypted superuser service failed to start"
+    exit 1
+fi
+
+echo ""
 echo "🎉 All tests passed successfully!"
 echo ""
 print_status "INFO" "Test Summary:"
@@ -219,6 +235,7 @@ echo "   ✅ Version command (--version)"
 echo "   ✅ Help command (--help)"
 echo "   ✅ Direct admin commands"
 echo "   ✅ Automatic superuser creation"
+echo "   ✅ Automatic superuser creation with encrypted settings"
 echo "   ✅ Shell access"
 echo ""
 echo "🚀 Docker image is ready for use!"
