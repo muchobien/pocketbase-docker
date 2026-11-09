@@ -1,3 +1,5 @@
+# This workflow is managed by gh actions-lock.
+
 name: Release PocketBase Docker image
 run-name: Release PocketBase ${{ inputs.version }}
 
