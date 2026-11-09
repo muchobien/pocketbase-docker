@@ -24,28 +24,25 @@ dir = "tests"
 run = "./test.sh"
 
 [tasks.clean]
-description = "Clean up test containers, volumes, and unused Docker resources"
-run = '''
-docker compose -f tests/compose.test.yaml down -v --remove-orphans 2>/dev/null || true
-docker system prune -f 2>/dev/null || true
-'''
+description = "Clean up test containers, volumes, and networks"
+run = "docker compose -f tests/compose.test.yaml down -v --remove-orphans"
 
 [tasks."test:default"]
 description = "Test default serve behavior"
 depends = ["build:test"]
 run = '''
-docker compose -f tests/compose.test.yaml up -d test-default
-sleep 15
-curl -f http://localhost:8090/api/health && echo "✅ Default test passed" || echo "❌ Default test failed"
-docker compose -f tests/compose.test.yaml down
+trap 'docker compose -f tests/compose.test.yaml down -v --remove-orphans' EXIT
+docker compose -f tests/compose.test.yaml up --wait --wait-timeout 60 test-default
+curl -f --max-time 10 http://localhost:8090/api/health
+echo "✅ Default test passed"
 '''
 
 [tasks."test:env"]
 description = "Test custom environment variables"
 depends = ["build:test"]
 run = '''
-docker compose -f tests/compose.test.yaml up -d test-custom-env
-sleep 15
-curl -f http://localhost:8091/api/health && echo "✅ Environment test passed" || echo "❌ Environment test failed"
-docker compose -f tests/compose.test.yaml down
+trap 'docker compose -f tests/compose.test.yaml down -v --remove-orphans' EXIT
+docker compose -f tests/compose.test.yaml up --wait --wait-timeout 60 test-custom-env
+curl -f --max-time 10 http://localhost:8091/api/health
+echo "✅ Environment test passed"
 '''
