@@ -24,6 +24,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
+      attestations: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -53,14 +55,24 @@ jobs:
             type=semver,pattern={{major}},value=${{ inputs.version }}
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          provenance: false
+          provenance: mode=max
+          sbom: true
           build-args: VERSION=${{ inputs.version }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Attest release image
+        uses: actions/attest@v4
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/pocketbase
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+          create-storage-record: false

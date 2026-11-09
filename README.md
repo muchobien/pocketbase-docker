@@ -418,6 +418,23 @@ This image supports multiple architectures. Docker will automatically pull the c
 | `0.22`   | Latest patch in minor version      |
 | `0`      | Latest release in major version    |
 
+### Image Attestations
+
+Release images include build provenance and a Software Bill of Materials (SBOM).
+The release workflow also signs a provenance attestation for the published image
+digest and pushes it to GHCR.
+
+With the GitHub CLI and GHCR authentication configured, verify an image built from
+`main` by replacing `<digest>` with its published digest:
+
+```sh
+gh attestation verify \
+  'oci://ghcr.io/muchobien/pocketbase@sha256:<digest>' \
+  --repo muchobien/pocketbase-docker \
+  --signer-workflow muchobien/pocketbase-docker/.github/workflows/deploy.yml \
+  --source-ref refs/heads/main
+```
+
 ## Related Repositories
 
 - [PocketBase](https://ganigeorgiev.com/pocketbase/pocketbase) - The official PocketBase repository
